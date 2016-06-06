@@ -18,13 +18,13 @@
  * mascara de subred.
  */
 void test_MASCARA(void) {
-    assert(MASCARA(0) == MASCARA_0);
-    assert(MASCARA(8) == MASCARA_8);
-    assert(MASCARA(16) == MASCARA_16);
-    assert(MASCARA(21) == MASCARA_21);
-    assert(MASCARA(24) == MASCARA_24);
-    assert(MASCARA(27) == MASCARA_27);
-    assert(MASCARA(31) == MASCARA_31);
+    assert(GET_MASCARA(0) == MASCARA_0);
+    assert(GET_MASCARA(8) == MASCARA_8);
+    assert(GET_MASCARA(16) == MASCARA_16);
+    assert(GET_MASCARA(21) == MASCARA_21);
+    assert(GET_MASCARA(24) == MASCARA_24);
+    assert(GET_MASCARA(27) == MASCARA_27);
+    assert(GET_MASCARA(31) == MASCARA_31);
 }
 
 /**
@@ -58,7 +58,7 @@ void test_in_net(void) {
     /* 172.18.1.1 -> 172.16.0.0/12 VERDADERO */
     ip.s_addr = inet_addr("172.18.1.1");
     net.s_addr = inet_addr("172.16.0.0");
-    mascara = MASCARA(12);
+    mascara = GET_MASCARA(12);
     assert(IN_NET(ip.s_addr, net.s_addr, mascara) == 1);
 
     /* 10.200.0.10 -> 10.200.0.0/16 VERDADERO */

@@ -58,7 +58,7 @@ typedef struct s_clase {
 } t_clase;
 
 /**
- * MASCARA(n)
+ * GET_MASCARA(n)
  * --------------------------------------------------------------------------
  * Obtiene la mascara de subred en formato hexadecimal a partir de *n* que
  * representa la cantidad de bits que contiene la direccion de red.
@@ -71,7 +71,7 @@ typedef struct s_clase {
  * por lo tanto la mascara de subred es 255.255.248.0 y en formato hexadecimal
  * es 0xfffff800
  */
-#define MASCARA(n) htonl(0xffffffff & ~(0xffffffff >> n))
+#define GET_MASCARA(n) htonl(0xffffffff & ~(0xffffffff >> n))
 
 /**
  * IN_NET(ip, red, mascara)
@@ -79,7 +79,7 @@ typedef struct s_clase {
  * Devuelve 1 si la direccion *ip* pertenece a la red *red* con la mascara
  * de subred *mascara*.
  *
- * ###Parametros
+ * ### Parametros
  * * ip: Debe ser del tipo in_addr_t (campo s_addr de la estructura in_addr).
  * * red: Debe ser del tipo in_addr_t (campo s_addr de la estructura in_addr).
  * * mascara: Debe estar en formato hexadecimal.
