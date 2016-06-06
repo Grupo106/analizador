@@ -63,6 +63,10 @@ typedef struct s_clase {
  * Obtiene la mascara de subred en formato hexadecimal a partir de *n* que
  * representa la cantidad de bits que contiene la direccion de red.
  *
+ * Es necesario llamar a htonl porque las direcciones de red tienen el bit mas
+ * significativo a la derecha (es decir el numero se representa al reves en
+ * hexadecimal).
+ *
  * Por ejemplo, la direccion 10.0.32.0/21 tiene 21 bits de mascara de subred
  * por lo tanto la mascara de subred es 255.255.248.0 y en formato hexadecimal
  * es 0xfffff800
@@ -70,7 +74,7 @@ typedef struct s_clase {
 #define MASCARA(n) htonl(0xffffffff & ~(0xffffffff >> n))
 
 /**
- * in_net
+ * IN_NET(ip, red, mascara)
  * --------------------------------------------------------------------------
  * Devuelve 1 si la direccion *ip* pertenece a la red *red* con la mascara
  * de subred *mascara*. 
