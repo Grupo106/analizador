@@ -26,7 +26,7 @@ struct s_subnet {
     struct in_addr red; /* Direccion de red (la seccion de host debe estar 
                          * en cero) 
                          */
-    u_int32_t mascara; /* Mascara de subred en formato hexadecimal */
+    in_addr_t mascara; /* Mascara de subred en formato hexadecimal */
 };
 
 /**
@@ -67,19 +67,24 @@ typedef struct s_clase {
  * por lo tanto la mascara de subred es 255.255.248.0 y en formato hexadecimal
  * es 0xfffff800
  */
-#define MASCARA(n) 0xffffffff & ~(0xffffffff >> n)
+#define MASCARA(n) htonl(0xffffffff & ~(0xffffffff >> n))
 
 /**
  * in_net
  * --------------------------------------------------------------------------
- * Devuelve TRUE si la direccion *ip* pertenece a la red *red* con la mascara
- * de subred *mascara*. La mascara de subred debe estar en formato hexadecimal
+ * Devuelve 1 si la direccion *ip* pertenece a la red *red* con la mascara
+ * de subred *mascara*. 
+ *
+ * ###Parametros
+ * * ip: Debe ser del tipo in_addr_t (campo s_addr de la estructura in_addr).
+ * * red: Debe ser del tipo in_addr_t (campo s_addr de la estructura in_addr).
+ * * mascara: Debe estar en formato hexadecimal.
  *
  * Para comprobar que una direccion IP pertenece a una IP hay que hacer una
  * operación AND con la máscara de subred y el resultado debe ser igual a la
  * dirección de red.
  */
-int in_net(struct inet_addr ip, struct inet_addr red, u_int32_t mascara);
+#define IN_NET(ip, red, mascara) ((ip & mascara) == red)
 
 
 #endif /* CLASE_TRAFICO_H */
