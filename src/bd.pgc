@@ -1,0 +1,140 @@
+/* vim: set ft=c: */
+#include <assert.h>
+#include <syslog.h>
+#include <stdlib.h>
+#include <arpa/inet.h>
+
+#include "db.h"
+#include "paquete.h"
+
+/**
+ * print_sqlca()
+ * -------------------------------------------------------------------------
+ * Imprime error en caso de ocurrir alguno
+ */
+void print_sqlca();
+
+EXEC SQL BEGIN DECLARE SECTION;
+    char _src[INET_ADDRSTRLEN],
+         _dst[INET_ADDRSTRLEN];
+    int _sport,
+        _dport,
+        _bytes,
+        _protocol;
+    const char *_insert_stmt =
+    "INSERT INTO traffic (src, dst, sport, dport, bytes, protocol) \
+     VALUES(?, ?, ?, ?, ?, ?);";
+EXEC SQL END DECLARE SECTION;
+
+EXEC SQL WHENEVER SQLERROR CALL print_sqlca();
+EXEC SQL WHENEVER SQLWARNING SQLPRINT;
+
+
+/**
+* imprimir()
+* ---------------------------------------------------------------------------
+* Imprime paquete en la salida estandar
+*/
+void imprimir(t_paquete *paquete) {
+    // imprimir paquete
+    char src[INET_ADDRSTRLEN], dst[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(paquete->src), src, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &(paquete->dst), dst, INET_ADDRSTRLEN);
+    printf("%s - %15s:%-5d -> %15s:%-5d - %d bytes\n",
+           paquete->protocol == 6 ? "TCP" : "UDP",
+           src,
+           paquete->sport,
+           dst,
+           paquete->dport,
+           paquete->bytes);
+}
+
+/**
+ * bd_conectar()
+ * -------------------------------------------------------------------------
+ * Conecta con la base de datos
+ */
+int bd_conectar() {
+    EXEC SQL CONNECT TO POSTGRES_CONNECTION_STRING USER POSTGRES_USER/
+                                                        POSTGRES_PASSWD;
+    if(sqlca.sqlcode == 0) syslog(LOG_INFO, "Base de datos conectada");
+    return sqlca.sqlcode;
+}
+
+/**
+ * bd_desconectar()
+ * -------------------------------------------------------------------------
+ * Desconecta con la base de datos
+ */
+void bd_desconectar() {
+    EXEC SQL DISCONNECT ALL;
+    syslog(LOG_INFO, "Base de datos desconectada");
+}
+
+/**
+ * bd_insertar(t_paquete*)
+ * -------------------------------------------------------------------------
+ * Inserta un paquete en el almacen de datos.
+ * Luego de insertar los paquetes es necesario hacer un commit()
+ */
+void bd_insertar(t_paquete *paquete) {
+    assert(paquete != NULL);
+    /* Preparo sentencia insert */
+    EXEC SQL PREPARE _insert FROM :_insert_stmt;
+    /* Preparo parametros */
+    inet_ntop(AF_INET, &(paquete->src), _src, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, &(paquete->dst), _dst, INET_ADDRSTRLEN);
+    /* Asumo que la direccion de origen y destino es distinto de null */
+    assert(*_src);
+    assert(*_dst);
+    _sport = paquete->sport;
+    _dport = paquete->dport;
+    _bytes = paquete->bytes;
+    _protocol = paquete->protocol;
+    /* Ejecuto sentencia */
+    EXEC SQL EXECUTE _insert
+         USING :_src, :_dst, :_sport, :_dport, :_bytes, :_protocol;
+    /* Libero recursos */
+    EXEC SQL DEALLOCATE PREPARE _insert;
+    #ifdef DEBUG
+        imprimir(paquete);
+    #endif
+}
+
+/**
+ * bd_commit()
+ * -------------------------------------------------------------------------
+ * Hace un commit de la transaccion en la base de datos
+ */
+void bd_commit() {
+    EXEC SQL COMMIT;
+}
+
+/**
+ * print_sqlca()
+ * -------------------------------------------------------------------------
+ * Imprime error en caso de ocurrir alguno
+ */
+void print_sqlca() {
+    syslog(LOG_ERR, "==== sqlca ====\n");
+    syslog(LOG_ERR, "sqlcode: %ld\n", sqlca.sqlcode);
+    syslog(LOG_ERR, "sqlerrm.sqlerrml: %d\n", sqlca.sqlerrm.sqlerrml);
+    syslog(LOG_ERR, "sqlerrm.sqlerrmc: %s\n", sqlca.sqlerrm.sqlerrmc);
+    syslog(LOG_ERR, "sqlerrd: %ld %ld %ld %ld %ld %ld\n", sqlca.sqlerrd[0],
+                                                          sqlca.sqlerrd[1],
+                                                          sqlca.sqlerrd[2],
+                                                          sqlca.sqlerrd[3],
+                                                          sqlca.sqlerrd[4],
+                                                          sqlca.sqlerrd[5]);
+    syslog(LOG_ERR, "sqlwarn: %d %d %d %d %d %d %d %d\n", sqlca.sqlwarn[0],
+                                                          sqlca.sqlwarn[1],
+                                                          sqlca.sqlwarn[2],
+                                                          sqlca.sqlwarn[3],
+                                                          sqlca.sqlwarn[4],
+                                                          sqlca.sqlwarn[5],
+                                                          sqlca.sqlwarn[6],
+                                                          sqlca.sqlwarn[7]);
+    syslog(LOG_ERR, "sqlstate: %5s\n", sqlca.sqlstate);
+    syslog(LOG_ERR, "===============\n");
+    exit(EXIT_FAILURE);
+}
