@@ -23,8 +23,8 @@
  * dirección de red.
  */
 struct s_subnet {
-    struct in_addr red; /* Direccion de red (la seccion de host debe estar 
-                         * en cero) 
+    struct in_addr red; /* Direccion de red (la seccion de host debe estar
+                         * en cero)
                          */
     in_addr_t mascara; /* Mascara de subred en formato hexadecimal */
 };
@@ -77,7 +77,7 @@ typedef struct s_clase {
  * IN_NET(ip, red, mascara)
  * --------------------------------------------------------------------------
  * Devuelve 1 si la direccion *ip* pertenece a la red *red* con la mascara
- * de subred *mascara*. 
+ * de subred *mascara*.
  *
  * ###Parametros
  * * ip: Debe ser del tipo in_addr_t (campo s_addr de la estructura in_addr).

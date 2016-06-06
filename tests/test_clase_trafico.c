@@ -37,32 +37,32 @@ void test_in_net(void) {
     struct in_addr ip, net;
     u_int32_t mascara;
 
-    /* 192.168.1.1 -> 192.168.1.0/24 VERDADERO */ 
-    ip.s_addr = inet_addr("192.168.1.1"); 
+    /* 192.168.1.1 -> 192.168.1.0/24 VERDADERO */
+    ip.s_addr = inet_addr("192.168.1.1");
     net.s_addr = inet_addr("192.168.1.0");
     mascara = MASCARA_24;
     assert(IN_NET(ip.s_addr, net.s_addr, mascara) == 1);
 
     /* 192.168.1.1 -> 192.168.2.0/24 FALSO */
-    ip.s_addr = inet_addr("192.168.1.1"); 
+    ip.s_addr = inet_addr("192.168.1.1");
     net.s_addr = inet_addr("192.168.2.0");
     mascara = MASCARA_24;
     assert(IN_NET(ip.s_addr, net.s_addr, mascara) == 0);
 
-    /* 192.168.1.33 -> 192.168.1.0/27 FALSO */ 
-    ip.s_addr = inet_addr("192.168.1.33"); 
+    /* 192.168.1.33 -> 192.168.1.0/27 FALSO */
+    ip.s_addr = inet_addr("192.168.1.33");
     net.s_addr = inet_addr("192.168.1.0");
     mascara = MASCARA_27;
     assert(IN_NET(ip.s_addr, net.s_addr, mascara) == 0);
 
-    /* 172.18.1.1 -> 172.16.0.0/12 VERDADERO */ 
-    ip.s_addr = inet_addr("172.18.1.1"); 
+    /* 172.18.1.1 -> 172.16.0.0/12 VERDADERO */
+    ip.s_addr = inet_addr("172.18.1.1");
     net.s_addr = inet_addr("172.16.0.0");
     mascara = MASCARA(12);
     assert(IN_NET(ip.s_addr, net.s_addr, mascara) == 1);
 
-    /* 10.200.0.10 -> 10.200.0.0/16 VERDADERO */ 
-    ip.s_addr = inet_addr("10.200.0.10"); 
+    /* 10.200.0.10 -> 10.200.0.0/16 VERDADERO */
+    ip.s_addr = inet_addr("10.200.0.10");
     net.s_addr = inet_addr("10.200.0.0");
     mascara = MASCARA_16;
     assert(IN_NET(ip.s_addr, net.s_addr, mascara) == 1);
