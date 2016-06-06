@@ -9,7 +9,13 @@
 #define MASCARA_27 0xffffffe0
 #define MASCARA_31 0xfffffffe
 
-
+/**
+ * test_MASCARA
+ * --------------------------------------------------------------------------
+ * Prueba que la macro MASCARA devuelva correctamente la mascara de subred
+ * en formato hexadecimal a partir de la cantidad de bits que contiene la
+ * mascara de subred.
+ */
 void test_MASCARA(void) {
     assert(MASCARA(0) == MASCARA_0);
     assert(MASCARA(8) == MASCARA_8);
