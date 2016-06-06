@@ -3,6 +3,9 @@
  * ==========================================================================
  * Este modulo agrupa las estructuras de datos necesarias para representar
  * los patrones de tráfico a reconocer en los paquetes de red.
+ *
+ * Ademas brinda algunas macros para facilitar la manipulacion de direcciones
+ * de red y mascaras de subred en hexadecimal.
  */
 #ifndef CLASE_TRAFICO_H
 #define CLASE_TRAFICO_H
@@ -63,5 +66,16 @@ typedef struct s_clase {
  * dirección de red.
  */
 #define IN_NET(a, n, m) ((in_addr) (a & m) == n)
+
+/**
+ * MASCARA(n)
+ * --------------------------------------------------------------------------
+ * Obtiene la mascara de subred en formato hexadecimal a partir de *n* que
+ * representa la cantidad de bits que contiene la direccion de red.
+ *
+ * Por ejemplo, la direccion 10.0.32.0/21 tiene 21 bits de mascara de subred
+ * por lo tanto la direccion de red es 255.255.248.0
+ */
+#define MASCARA(n) 0xffffffff & ~(0xffffffff >> n)
 
 #endif /* CLASE_TRAFICO_H */
