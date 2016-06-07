@@ -35,25 +35,37 @@ struct s_subnet {
  * Estructura de datos que representa los patrones a reconocer en los paquetes
  * de red para identificarlos como miembros de una clase de tráfico.
  *
+ * ### Bytes de subida y de bajada
  * Posee 2 campos que son la sumatoria de bytes separados en trafico de subida
  * y bajada. Entiendase como paquete de subida todo aquel paquete con dirección
  * INBOUND (ver paquete.h), es decir que tiene origen en la LAN y como destino
  * una dirección en Internet. El paquete de bajada por el contrario tiene
  * origen en una dirección de Internet y como destino un equipo en la LAN.
+ *
+ * ### Grupos A y B
+ * Las subredes y puertos se dividen en A y B. Generalmente se usará el grupo
+ * A para las coincidencias por hosts. Solo se usará el subgrupo B cuando sea
+ * necesario reconocer paquetes por el par A y B, es decir que el origen sea
+ * el host X y el destino el host Y. En ese caso el host X estarà en el
+ * grupo A y el host Y en el grupo B
  */
 typedef struct s_clase {
-    int id;             /* Identificado de la clase. Obligatorio */
-    int bytes_subida;   /* Sumatoria de bytes de paquetes que aplican a esta
-                         * clase con direccion OUTBOUND
-                         */
-    int bytes_bajada;   /* Sumatoria de bytes de paquetes que aplican a esta
-                         * clase con direccion INBOUND
-                         */
-    int cant_subredes;  /* Cantidad de subredes que tiene la clase */
-    int cant_puertos;   /* Cantidad de puertos que tiene la clase */
-    int protocolo;      /* Protocolo que aplica esta clase */
-    struct s_subnet *subredes; /* Array de subredes que definen la clase */
-    int *puertos;       /* Array de puertos que definen la clase */
+    int id; /* Identificado de la clase. Obligatorio */
+    int bytes_subida; /* Sumatoria de bytes de paquetes que aplican a esta
+                       * clase con direccion OUTBOUND
+                       */
+    int bytes_bajada; /* Sumatoria de bytes de paquetes que aplican a esta
+                       * clase con direccion INBOUND
+                       */
+    int cant_subredes_a; /* Cantidad de subredes que tiene la clase */
+    int cant_subredes_b; /* Cantidad de subredes que tiene la clase */
+    int cant_puertos_a; /* Cantidad de puertos que tiene la clase */
+    int cant_puertos_b; /* Cantidad de puertos que tiene la clase */
+    int protocolo; /* Protocolo que aplica esta clase */
+    struct s_subnet *subredes_a; /* Array de subredes que definen la clase */
+    struct s_subnet *subredes_b; /* Array de subredes que definen la clase */
+    int *puertos_a; /* Array de puertos que definen la clase */
+    int *puertos_b; /* Array de puertos que definen la clase */
     struct s_clase *siguiente; /* Estructura siguiente en la lista */
 } t_clase;
 
