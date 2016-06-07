@@ -57,15 +57,15 @@ typedef struct s_clase {
     int bytes_bajada; /* Sumatoria de bytes de paquetes que aplican a esta
                        * clase con direccion INBOUND
                        */
-    int cant_subredes_a; /* Cantidad de subredes que tiene la clase */
-    int cant_subredes_b; /* Cantidad de subredes que tiene la clase */
-    int cant_puertos_a; /* Cantidad de puertos que tiene la clase */
-    int cant_puertos_b; /* Cantidad de puertos que tiene la clase */
+    int cant_subredes_a; /* Cantidad de subredes que tiene el grupo A */
+    int cant_subredes_b; /* Cantidad de subredes que tiene el grupo B */
+    int cant_puertos_a; /* Cantidad de puertos que tiene el grupo A */
+    int cant_puertos_b; /* Cantidad de puertos que tiene el grupo B */
     int protocolo; /* Protocolo que aplica esta clase */
-    struct s_subnet *subredes_a; /* Array de subredes que definen la clase */
-    struct s_subnet *subredes_b; /* Array de subredes que definen la clase */
-    int *puertos_a; /* Array de puertos que definen la clase */
-    int *puertos_b; /* Array de puertos que definen la clase */
+    struct s_subnet *subredes_a; /* Array de subredes que definen el grupo A */
+    struct s_subnet *subredes_b; /* Array de subredes que definen el grupo B */
+    int *puertos_a; /* Array de puertos que definen el grupo A */
+    int *puertos_b; /* Array de puertos que definen el grupo B */
     struct s_clase *siguiente; /* Estructura siguiente en la lista */
 } t_clase;
 
