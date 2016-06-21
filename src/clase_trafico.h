@@ -11,6 +11,23 @@
 #define CLASE_TRAFICO_H
 
 #include <arpa/inet.h>
+#include "paquete.h"
+
+/*
+ * CONSTANTES
+ * ===========================================================================
+ */
+#define LONG_NOMBRE 32 /* Longitud maxima del nombre de clase de trafico */
+#define LONG_DESCRIPCION 160 /* Longitud maxima de la descripcion de trafico. 
+                              * Se modifica esta cantidad para que el tamaño de
+                              * la estructura de clase de trafico sea potencia
+                              * de dos.
+                              */
+
+/*
+ * ESTRUCTURAS
+ * ===========================================================================
+ */
 
 /**
  * struct subnet
@@ -50,7 +67,7 @@ struct subred {
  * grupo A y el host Y en el grupo B
  */
 struct clase {
-    int id; /* Identificado de la clase. Obligatorio */
+    int id; /* Identificado de la clase.*/
     int bytes_subida; /* Sumatoria de bytes de paquetes que aplican a esta
                        * clase con direccion OUTBOUND
                        */
@@ -66,6 +83,8 @@ struct clase {
     int *puertos_b; /* Array de puertos que definen el grupo B */
     struct subred *subredes_a; /* Array de subredes que definen el grupo A */
     struct subred *subredes_b; /* Array de subredes que definen el grupo B */
+    char nombre[LONG_NOMBRE]; /* Nombre que identifica clase de trafico */
+    char descripcion[LONG_DESCRIPCION]; /* Descripcion de clase de trafico */
 };
 
 /**
@@ -79,31 +98,99 @@ struct clase {
 * */
 struct cidr_clase {
     struct subred red;
-    struct s_clase *clases;
+    struct clase *clases;
     int cantidad;
 };
 
+/**
+* struct puerto_clase
+* -----------------------------------------------------------------------------
+* Relaciona un puerto con un conjunto de clases que poseen ese numero de puerto
+* en alguna de sus puertos.
+*
+* Estructura auxiliar que sirve para las búsquedas binarias de clases de
+* tráfico ya que puede ordenarse por número de puerto.
+* */
+struct puerto_clase {
+    int numero; 
+    int cantidad;
+    struct clase *clases;
+};
+
+/*
+ * FUNCIONES
+ * ===========================================================================
+ */
 
 /**
- * comparar_cidr(a, b)
+ * cidr_buscar_coincidencia(array, paquete, cantidad_clases)
+ * ---------------------------------------------------------------------------
+ * Busca la clase de trafico que mejor coincida con el paquete según su CIDR. 
+ * En caso de que ninguna clase de trafico coincida, devuelve NULL.
+ */
+struct clase* cidr_buscar_coincidencia(const struct cidr_clase *array,
+                                       const struct paquete *paquete,
+                                       int cantidad_clases);
+
+/**
+ * puerto_buscar_coincidencia(array, paquete, cantidad_clases)
+ * ---------------------------------------------------------------------------
+ * Busca la clase de trafico que mejor coincida con el paquete según su número
+ * de puerto. En caso de que ninguna clase de trafico coincida, devuelve NULL.
+ */
+struct clase* puerto_buscar_coincidencia(const struct cidr_clase *array,
+                                         const struct paquete *paquete,
+                                         int cantidad_clases);
+
+/**
+ * deducir(clases, paquete, cantidad_clases)
+ * ---------------------------------------------------------------------------
+ * Intenta deducir a que clase de trafico pertenece un paquete. Debe usarse en
+ * caso que no exista coincidencia con las clases de trafico existentes.
+ *
+ * Busca en los puertos conocidos declarados por la IANA, en caso de
+ * coincidencia crea una nueva clase de trafico en el array de clases de
+ * trafico
+ *
+ * En caso de no encontrar coincidencia, se asume que pertenece a la clase 
+ * DEFAULT.
+ *
+ * Devuelve clase que se aplicó la coincidencia
+ */
+struct clase* deducir(const struct clase *clases,
+                      const struct paquete *paquete,
+                      int *cantidad_clases);
+
+/**
+ * cidr_comparar(a, b)
  * --------------------------------------------------------------------------
- * Compara 2 cidr y retorna:
+ * Compara 2 cidr_clase y retorna:
  * * -1: *a* es menor que *b*
  * *  0: *a* es igual o contiene a *b*
  * *  1: *a* es mayor que *b*
  */
-int comparar_cidr(cidr_clase a, cidr_clase b);
+int cidr_comparar(const void *a, const void *b);
+
+/**
+ * puerto_comparar(a, b)
+ * --------------------------------------------------------------------------
+ * Compara 2 puerto_clase y retorna:
+ * * -1: *a* es menor que *b*
+ * *  0: *a* es igual o contiene a *b*
+ * *  1: *a* es mayor que *b*
+ */
+int puerto_comparar(const void *a, const void *b);
 
 /**
  * enum contiene
  * ---------------------------------------------------------------------------
- * Declara posibles retornos de la funcion contiene_cidr
+ * Declara posibles retornos de la funcion cidr_contiene
  */
 enum contiene {
     SIN_COINCIDENCIA, /* No existe coincidencia entre CIDR */
     A_CONTIENE_B, /* El primer CIDR contiene al segundo */
     B_CONTIENE_A /* El segundo CIDR contiene al primero */
-}
+};
 
 /**
  * contiene_cidr(a, b)
@@ -113,8 +200,30 @@ enum contiene {
  * * B_CONTIENE_A: *b* es contiene a *a*
  * * SIN_COINCIDENCIA: no hay coincidencia entre a y b
  */
-enum contiene contiene_cidr(cidr_clase a, cidr_clase b);
+enum contiene cidr_contiene(const struct cidr_clase *a , 
+                            const struct cidr_clase *b);
 
+/**
+ * cidr_insertar(array, clase, cmp)
+ * ---------------------------------------------------------------------------
+ * Inserta una clase en el array ordenado. Siempre se respetara el orden de las
+ * direcciones de red declaradas en cidr_clase.
+ */
+void cidr_insertar(struct cidr_clase *array, const struct clase *clase);
+
+/**
+ * puntaje(clase, paquete)
+ * ---------------------------------------------------------------------------
+ * Compara un paquete con una clase de tráfico y obtiene un puntaje que
+ * representa la cantidad y calidad de coincidencias. A mayor puntaje, mayor
+ * cantidad de coincidencias.
+ */
+int puntaje(const struct clase*, const struct paquete*);
+
+/*
+ * MACROS
+ * ===========================================================================
+ */
 /**
  * GET_MASCARA(n)
  * --------------------------------------------------------------------------
