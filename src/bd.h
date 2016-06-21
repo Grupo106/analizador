@@ -23,7 +23,7 @@ void bd_desconectar();
  * Inserta un paquete en el almacen de datos.
  * Luego de insertar los paquetes es necesario hacer un commit()
  */
-void bd_insertar(t_paquete *paquete);
+void bd_insertar(struct paquete*);
 
 /**
  * bd_commit()
