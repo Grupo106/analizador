@@ -29,8 +29,8 @@
 * */
 struct cidr_clase {
     struct subred red;
-    struct clase *clases;
     int cantidad;
+    struct clase *clases;
 };
 
 /**
