@@ -49,7 +49,7 @@ int main() {
     syslog(LOG_INFO, "Revision: %s (%s)", REVISION, BUILD_MODE);
     /* Imprimo banner con version */
     banner();
-    printf("%d\n", sizeof(struct clase));
+    printf("%ld\n", sizeof(struct clase));
     /* conecto base de datos */
 //    int sqlret = bd_conectar();
 //    if(sqlret != 0) return(sqlret);

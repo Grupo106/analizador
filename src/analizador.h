@@ -28,7 +28,7 @@
  * tráfico ya que puede ordenarse por número de subred.
  */
 struct cidr_clase {
-    struct subred red; /* subred que agrupara clases */
+    struct subred cidr; /* subred que agrupa clases */
     int cantidad; /* cantidad de clases que contiene el array */
     struct clase *clases; /* array de clases coincidentes */
 };
@@ -53,7 +53,7 @@ struct puerto_clase {
  * ---------------------------------------------------------------------------
  * Agrupa las coincidencias de clases de tráfico que coinciden con el paquete
  */
-struct puerto_clase {
+struct coincidencia {
     int cantidad; /* cantidad de clases que coinciden*/
     struct paquete *paquete; /* puntero al paquete en cuestion */
     struct clase *clases; /* array de punteros coincidentes */
@@ -131,7 +131,8 @@ int puerto_comparar(const void *a, const void *b);
 enum contiene {
     SIN_COINCIDENCIA, /* No existe coincidencia entre CIDR */
     A_CONTIENE_B, /* El primer CIDR contiene al segundo */
-    B_CONTIENE_A /* El segundo CIDR contiene al primero */
+    B_CONTIENE_A, /* El segundo CIDR contiene al primero */
+    IGUALES /* Ambas redes sin iguales */
 };
 
 /**
@@ -141,6 +142,7 @@ enum contiene {
  * * A_CONTIENE_B: *a* es contiene a *b*
  * * B_CONTIENE_A: *b* es contiene a *a*
  * * SIN_COINCIDENCIA: no hay coincidencia entre a y b
+ * * IGUALES: Ambas redes son iguales
  */
 enum contiene cidr_contiene(const struct cidr_clase *a , 
                             const struct cidr_clase *b);
