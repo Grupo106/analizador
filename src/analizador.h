@@ -18,34 +18,45 @@
  * ===========================================================================
  */
 
-/**
-* struct cidr_clase
-* -----------------------------------------------------------------------------
-* Relaciona una subred con un conjunto de clases que poseen ese rango en alguna
-* de sus subredes.
-*
-* Estructura auxiliar que sirve para las búsquedas binarias de clases de
-* tráfico ya que puede ordenarse por número de subred.
-* */
+/*
+ * struct cidr_clase
+ * ---------------------------------------------------------------------------
+ * Relaciona una subred con un conjunto de clases que poseen ese rango en alguna
+ * de sus subredes.
+ *
+ * Estructura auxiliar que sirve para las búsquedas binarias de clases de
+ * tráfico ya que puede ordenarse por número de subred.
+ */
 struct cidr_clase {
-    struct subred red;
-    int cantidad;
-    struct clase *clases;
+    struct subred red; /* subred que agrupara clases */
+    int cantidad; /* cantidad de clases que contiene el array */
+    struct clase *clases; /* array de clases coincidentes */
 };
 
-/**
-* struct puerto_clase
-* -----------------------------------------------------------------------------
-* Relaciona un puerto con un conjunto de clases que poseen ese numero de puerto
-* en alguna de sus puertos.
-*
-* Estructura auxiliar que sirve para las búsquedas binarias de clases de
-* tráfico ya que puede ordenarse por número de puerto.
-* */
+/*
+ * struct puerto_clase
+ * ---------------------------------------------------------------------------
+ * Relaciona un puerto con un conjunto de clases que poseen ese numero de puerto
+ * en alguna de sus puertos.
+ *
+ * Estructura auxiliar que sirve para las búsquedas binarias de clases de
+ * tráfico ya que puede ordenarse por número de puerto.
+ */
 struct puerto_clase {
-    int numero; 
-    int cantidad;
-    struct clase *clases;
+    int numero;  /* numero de puerto */
+    int cantidad; /* cantidad de clases que contienen el puerto */
+    struct clase *clases; /* array de clases coincidentes */
+};
+
+/*
+ * struct coincidencia
+ * ---------------------------------------------------------------------------
+ * Agrupa las coincidencias de clases de tráfico que coinciden con el paquete
+ */
+struct puerto_clase {
+    int cantidad; /* cantidad de clases que coinciden*/
+    struct paquete *paquete; /* puntero al paquete en cuestion */
+    struct clase *clases; /* array de punteros coincidentes */
 };
 
 /*
@@ -69,10 +80,10 @@ struct clase* cidr_buscar_coincidencia(const struct cidr_clase *array,
  * Busca la clase de trafico que mejor coincida con el paquete según su número
  * de puerto. En caso de que ninguna clase de trafico coincida, devuelve NULL.
  */
-struct clase* puerto_buscar_coincidencia(const struct cidr_clase *array,
-                                         const struct paquete *paquete,
-                                         int cantidad_clases);
-
+int puerto_buscar_coincidencia(const struct cidr_clase *array,
+                               const struct paquete *paquete,
+                               int cantidad_clases,
+                               struct coincidencia *coincidencia);
 /**
  * deducir(clases, paquete, cantidad_clases)
  * ---------------------------------------------------------------------------
