@@ -1,2 +1,6 @@
 language: c
-script: ./run_tests.sh
+script: 
+  - ./run_tests.sh
+  - gcov analizador.c
+after_success:
+- bash <(curl -s https://codecov.io/bash)
