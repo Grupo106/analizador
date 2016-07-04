@@ -21,8 +21,8 @@
 /*
  * struct cidr_clase
  * ---------------------------------------------------------------------------
- * Relaciona una subred con un conjunto de clases que poseen ese rango en alguna
- * de sus subredes.
+ * Relaciona una subred con un conjunto de clases que poseen ese rango en 
+ * alguna de sus subredes.
  *
  * Estructura auxiliar que sirve para las búsquedas binarias de clases de
  * tráfico ya que puede ordenarse por número de subred.
@@ -71,8 +71,8 @@ struct coincidencia {
  * En caso de que ninguna clase de trafico coincida, devuelve NULL.
  */
 struct clase* cidr_buscar_coincidencia(const struct cidr_clase *array,
-                                       const struct paquete *paquete,
-                                       int cantidad_clases);
+        const struct paquete *paquete,
+        int cantidad_clases);
 
 /**
  * puerto_buscar_coincidencia(array, paquete, cantidad_clases)
@@ -81,9 +81,9 @@ struct clase* cidr_buscar_coincidencia(const struct cidr_clase *array,
  * de puerto. En caso de que ninguna clase de trafico coincida, devuelve NULL.
  */
 int puerto_buscar_coincidencia(const struct cidr_clase *array,
-                               const struct paquete *paquete,
-                               int cantidad_clases,
-                               struct coincidencia *coincidencia);
+        const struct paquete *paquete,
+        int cantidad_clases,
+        struct coincidencia *coincidencia);
 /**
  * deducir(clases, paquete, cantidad_clases)
  * ---------------------------------------------------------------------------
@@ -100,8 +100,8 @@ int puerto_buscar_coincidencia(const struct cidr_clase *array,
  * Devuelve clase que se aplicó la coincidencia
  */
 struct clase* deducir(const struct clase *clases,
-                      const struct paquete *paquete,
-                      int *cantidad_clases);
+        const struct paquete *paquete,
+        int *cantidad_clases);
 
 /**
  * cidr_comparar(a, b)
@@ -145,17 +145,20 @@ enum contiene {
  * * IGUALES: Ambas redes son iguales
  */
 enum contiene cidr_contiene(const struct cidr_clase *a , 
-                            const struct cidr_clase *b);
+        const struct cidr_clase *b);
 
-/**
+/*
  * cidr_insertar(array, clase, cantidad_clases)
  * ---------------------------------------------------------------------------
  * Inserta una clase en el array ordenado. Siempre se respetara el orden de las
  * direcciones de red declaradas en cidr_clase.
+ *
+ * Devuelve 0 si pudo insertar el elemento en el array, cualquier otro valor
+ * en caso de error
  */
-void cidr_insertar(struct cidr_clase *array, 
-                   const struct clase *clase, 
-                   int* cantidad_clases);
+int cidr_insertar(struct cidr_clase *array, 
+        const struct clase *clase, 
+        int* cantidad_clases);
 
 /**
  * puntaje(clase, paquete)
