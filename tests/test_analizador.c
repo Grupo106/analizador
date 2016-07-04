@@ -337,6 +337,7 @@ int main() {
     test_in_net();
     test_cidr_b_contiene_a();
     test_cidr_a_contiene_b();
+    test_cidr_iguales();
     test_cidr_sin_coincidencia();
     test_cidr_comparar_menor();
     test_cidr_comparar_mayor();
