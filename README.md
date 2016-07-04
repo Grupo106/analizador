@@ -1,5 +1,6 @@
 [![GitHub tag](https://img.shields.io/github/tag/Grupo106/analizador.svg?maxAge=2592000?style=plastic)](https://github.com/Grupo106/analizador/releases)
 [![Build Status](https://travis-ci.org/Grupo106/analizador.svg?branch=master)](https://travis-ci.org/Grupo106/analizador)
+[![codecov](https://codecov.io/gh/Grupo106/analizador/branch/master/graph/badge.svg)](https://codecov.io/gh/Grupo106/analizador)
 
 Analizador
 ======================================================
