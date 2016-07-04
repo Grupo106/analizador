@@ -104,14 +104,14 @@ struct clase* deducir(const struct clase *clases,
         int *cantidad_clases);
 
 /**
- * cidr_comparar(a, b)
+ * subred_comparar(a, b)
  * --------------------------------------------------------------------------
- * Compara 2 cidr_clase y retorna:
+ * Compara 2 subredes y retorna:
  * * -1: *a* es menor que *b*
  * *  0: *a* es igual o contiene a *b*
  * *  1: *a* es mayor que *b*
  */
-int cidr_comparar(const void *a, const void *b);
+int subred_comparar(const void *a, const void *b);
 
 /**
  * puerto_comparar(a, b)
@@ -158,7 +158,7 @@ enum contiene cidr_contiene(const struct cidr_clase *a ,
  */
 int cidr_insertar(struct cidr_clase *array, 
         const struct clase *clase, 
-        int* cantidad_clases);
+        int cantidad_clases);
 
 /**
  * puntaje(clase, paquete)
