@@ -2,7 +2,7 @@
 TEST_PATH=bin/tests
 TEST_SRC=tests
 SRC=src
-CC_FLAGS="-fprofile-arcs -ftest-coverage"
+CC_FLAGS="-fprofile-arcs -ftest-coverage -g -Wall"
 
 mkdir -p $TEST_PATH
 gcc $CC_FLAGS -o $TEST_PATH/test_analizador \
