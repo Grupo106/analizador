@@ -1,4 +1,8 @@
 language: c
+addons:
+  apt:
+    sources:
+      - libecpg-dev
 script: 
   - make
   - ./run_tests.sh
