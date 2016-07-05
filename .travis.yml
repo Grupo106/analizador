@@ -4,6 +4,7 @@ addons:
     sources:
       - libecpg-dev
 script: 
+  - make
   - ./run_tests.sh
   - gcov analizador.c
 after_success:
