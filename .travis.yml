@@ -1,0 +1,13 @@
+language: c
+sudo: required
+dist: trusty
+install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install g++-4.9 libpcap-dev libecpg-dev
+script: 
+  - make
+  - ./run_tests.sh
+  - gcov analizador.c
+after_success:
+- bash <(curl -s https://codecov.io/bash)

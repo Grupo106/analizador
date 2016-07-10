@@ -51,7 +51,7 @@ POSTGRESQL_DB ?= "postgres"
 POSTGRESQL_USER ?= "postgres"
 POSTGRESQL_PASSWORD ?= "postgres"
 # * flash de ecpg de produccion
-R_EPCG_FLAGS = -D"POSTGRES_CONNECTION_STRING=\"unix:postgresql://localhost/$(POSTGRESQL_DB)\"" \
+R_EPCG_FLAGS := -D"POSTGRES_CONNECTION_STRING=\"unix:postgresql://localhost/$(POSTGRESQL_DB)\"" \
               -D"POSTGRES_USER=\"$(POSTGRESQL_USER)\"" \
               -D"POSTGRES_PASSWD=\"$(POSTGRESQL_PASSWORD)\""
 # * flash de ecpg de desarrollo
@@ -140,4 +140,4 @@ $(BUILD_PATH)/%.o: $(SRC_DIR)/%.pgc
 # ---------------------------------------------------------------------------
 $(BIN_PATH)/$(PROGRAM): $(OBJECTS)
 	@echo "Construyendo $@"
-	@$(CC) $(LINK_FLAGS) -o $@ $(OBJECTS)
+	@$(CC) -o $@ $(OBJECTS) $(LINK_FLAGS)
