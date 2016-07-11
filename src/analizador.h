@@ -19,6 +19,11 @@
  * ===========================================================================
  */
 
+struct config {
+    int min;
+    int max;
+};
+
 /*
  * struct cidr_clase
  * ---------------------------------------------------------------------------
@@ -192,6 +197,33 @@ int imprimir(const struct clase *clases, int cantidad);
  *  JSON
  */
 int clases_to_json(FILE* file, const struct clase *clases, int cantidad);
+
+/**
+ * get_clases(**clases, *cfg)
+ * ---------------------------------------------------------------------------
+ *  Obtiene el array de clases de trafico que se utilizara en el analisis.
+ *  Devuelve la cantidad de clases que contiene el array
+ *
+ *  ### Parametros:
+ *    * clases: Puntero a un array donde se almacenaran las clases
+ *    * cfg: Puntero a la configuracion del analizador que contiene los
+ *           parametros por los cuales se seleccionaran las clases.
+ */
+int get_clases(struct clase **clases, const struct config *cfg);
+
+/**
+ * init_clase
+ * --------------------------------------------------------------------------
+ *  Inicializa una estructura de clase de trafico a valores por defecto
+ */
+void init_clase(struct clase *clase);
+
+/**
+ * free_clase
+ * --------------------------------------------------------------------------
+ *  Libera memoria ocupada por una clase de trafico
+ */
+void free_clase(struct clase *clase);
 
 /*
  * MACROS

@@ -2,7 +2,7 @@
 TEST_PATH=bin/tests
 TEST_SRC=tests
 SRC=src
-CC_FLAGS="-fopenmp -fprofile-arcs -ftest-coverage -g -Wall"
+CC_FLAGS="-fopenmp -fprofile-arcs -ftest-coverage -g -Wall -std=c99"
 
 mkdir -p $TEST_PATH
 gcc $CC_FLAGS -o $TEST_PATH/test_analizador \

@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "analizador.h"
 
 /*
@@ -169,4 +171,87 @@ int clases_to_json(FILE* file, const struct clase *clases, int cantidad)
     /* fin array */
     fprintf(file, "]\n");
     return 0;
+}
+
+/**
+ * get_clases(**clases, *cfg)
+ * ---------------------------------------------------------------------------
+ *  Obtiene el array de clases de trafico que se utilizara en el analisis.
+ *  Devuelve la cantidad de clases que contiene el array
+ *
+ *  ### Parametros:
+ *    * clases: Puntero a un array donde se almacenaran las clases
+ *    * cfg: Puntero a la configuracion del analizador que contiene los
+ *           parametros por los cuales se seleccionaran las clases.
+ */
+int get_clases(struct clase **clases, const struct config *cfg)
+{
+    struct clase *c;
+    (void) cfg; /* XXX: ignoro parametro */
+    c = *clases = malloc(4 * sizeof(struct clase));
+    /* La primer clase es la default */
+    init_clase(c);
+    strncpy(c->nombre, "Default", LONG_NOMBRE);
+    strncpy(c->descripcion, "Clase por defecto", LONG_DESCRIPCION);
+    /* XXX: Mock clases */
+    /* SSH */
+    c++;
+    init_clase(c);
+    strncpy(c->nombre, "SSH", LONG_NOMBRE);
+    strncpy(c->descripcion, "Secure shell - Administracion remota",
+            LONG_DESCRIPCION);
+    c->cant_puertos_a = 1;
+    c->puertos_a = malloc(sizeof(u_int16_t));
+    *(c->puertos_a) = 22;
+    /* HTTP */
+    c++;
+    init_clase(c);
+    strncpy(c->nombre, "HTTP", LONG_NOMBRE);
+    strncpy(c->descripcion, "Navegacion web", LONG_DESCRIPCION);
+    c->cant_puertos_a = 1;
+    c->puertos_a = malloc(sizeof(u_int16_t));
+    *(c->puertos_a) = 80;
+    /* HTTPS */
+    c++;
+    init_clase(c);
+    strncpy(c->nombre, "HTTPS", LONG_NOMBRE);
+    strncpy(c->descripcion, "Navegacion web segura", LONG_DESCRIPCION);
+    c->cant_puertos_a = 1;
+    c->puertos_a = malloc(sizeof(u_int16_t));
+    *(c->puertos_a) = 443;
+    return 4;
+}
+
+/**
+ * init_clase
+ * --------------------------------------------------------------------------
+ *  Inicializa una estructura de clase de trafico a valores por defecto
+ */
+void init_clase(struct clase *clase) {
+    clase->id = 0;
+    *(clase->nombre) = '\0';
+    *(clase->descripcion) = '\0';
+    clase->cant_subredes_a = 0;
+    clase->cant_subredes_b = 0;
+    clase->cant_puertos_a = 0;
+    clase->cant_puertos_b = 0;
+    clase->protocolo = 0;
+    clase->bytes_subida = 0;
+    clase->bytes_bajada = 0;
+    clase->subredes_a = NULL;
+    clase->subredes_b = NULL;
+    clase->puertos_a = NULL;
+    clase->puertos_b = NULL;
+}
+
+/**
+ * free_clase
+ * --------------------------------------------------------------------------
+ *  Libera memoria ocupada por una clase de trafico
+ */
+void free_clase(struct clase *clase) {
+    free(clase->subredes_a);
+    free(clase->subredes_b);
+    free(clase->puertos_a);
+    free(clase->puertos_b);
 }

@@ -43,13 +43,14 @@ void manejar_interrupciones();
 void banner();
 
 int main() {
+    struct clase *clases = NULL;
+    int cant_clases = 0;
     /* Inicializo logs */
     openlog(PROGRAM, LOG_CONS | LOG_PID, LOG_LOCAL0);
     /* muestro informacion del build */
     syslog(LOG_INFO, "Revision: %s (%s)", REVISION, BUILD_MODE);
-    /* Imprimo banner con version */
-    banner();
-    printf("%ld\n", sizeof(struct clase));
+    cant_clases = get_clases(&clases, NULL);
+    imprimir(clases, cant_clases);
     /* conecto base de datos */
 //    int sqlret = bd_conectar();
 //    if(sqlret != 0) return(sqlret);
