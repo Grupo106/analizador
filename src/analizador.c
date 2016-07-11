@@ -69,7 +69,7 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
      * coincide con la clase
      *
      * Si esta en 1 significa que se encontro ese parametro en el paquete
-     * Por defecto, si la clase no escifica ese parametro, se asume que se
+     * Por defecto, si la clase no especifica ese parametro, se asume que se
      * encontro ese parametro, ya que al final se hace una operacion AND entre
      * todos los flags.*/
     int redes_A = !(clase->cant_subredes_a > 0);
@@ -85,11 +85,11 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
         /* si la ip de origen o la de destino del paquete estan en la subred
          * definida en la clase. */
         redes_A = IN_NET(paquete->origen.s_addr, /* origen */
-                         clase->subredes_a[i].red.s_addr,
-                         clase->subredes_a[i].mascara) ||
+                         (clase->subredes_a + i)->red.s_addr,
+                         (clase->subredes_a + i)->mascara) ||
                   IN_NET(paquete->destino.s_addr, /* destino */
-                         clase->subredes_a[i].red.s_addr,
-                         clase->subredes_a[i].mascara);
+                         (clase->subredes_a + i)->red.s_addr,
+                         (clase->subredes_a + i)->mascara);
         i++;
     }
 
@@ -99,11 +99,11 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
         /* si la ip de origen o la de destino del paquete estan en la subred
          * definida en la clase. */
         redes_B = IN_NET(paquete->origen.s_addr, /* origen */
-                         clase->subredes_b[i].red.s_addr,
-                         clase->subredes_b[i].mascara) ||
+                         (clase->subredes_b + i)->red.s_addr,
+                         (clase->subredes_b + i)->mascara) ||
                   IN_NET(paquete->destino.s_addr, /* destino */
-                         clase->subredes_b[i].red.s_addr,
-                         clase->subredes_b[i].mascara);
+                         (clase->subredes_b + i)->red.s_addr,
+                         (clase->subredes_b + i)->mascara);
         i++;
     }
 
@@ -112,8 +112,8 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
     while (!puerto_A && i < clase->cant_puertos_a) {
         /* si el puerto de origen o de destino del paquete es igual al que
          * define la clase */
-        puerto_A = paquete->puerto_origen == clase->puertos_a[i] || /*origen*/
-                   paquete->puerto_destino == clase->puertos_a[i]; /*destino*/
+        puerto_A = paquete->puerto_origen == *(clase->puertos_a + i) ||
+                   paquete->puerto_destino == *(clase->puertos_a + i);
         i++;
     }
 
@@ -122,8 +122,8 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
     while (!puerto_B && i < clase->cant_puertos_b) {
         /* si el puerto de origen o de destino del paquete es igual al que
          * define la clase */
-        puerto_B = paquete->puerto_origen == clase->puertos_b[i] || /*origen*/
-                   paquete->puerto_destino == clase->puertos_b[i]; /*destino*/
+        puerto_B = paquete->puerto_origen == *(clase->puertos_b + i) ||
+                   paquete->puerto_destino == *(clase->puertos_b + i);
         i++;
     }
     /* solamente devuelve verdadero si todos los parametros que se compararon
