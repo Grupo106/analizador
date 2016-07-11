@@ -4,8 +4,8 @@
 #include <arpa/inet.h>
 
 enum dir {
-    INBOUND = 0,
-    OUTBOUND = 1
+    ENTRANTE = 0,
+    SALIENTE = 1
 };
 
 /**
