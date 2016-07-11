@@ -47,19 +47,20 @@ int main() {
     int cant_clases = 0;
     /* Inicializo logs */
     openlog(PROGRAM, LOG_CONS | LOG_PID, LOG_LOCAL0);
-    /* muestro informacion del build */
-    syslog(LOG_INFO, "Revision: %s (%s)", REVISION, BUILD_MODE);
+    /* Muestro informacion del build */
+    syslog(LOG_DEBUG, "Revision: %s (%s)", REVISION, BUILD_MODE);
+    /* Conecto base de datos */
+    int sqlret = bd_conectar();
+    if(sqlret != 0) {
+        fprintf(stderr, "Error al conectar a la base de datos");
+        exit(sqlret);
+    }
     cant_clases = get_clases(&clases, NULL);
     imprimir(clases, cant_clases);
-    /* conecto base de datos */
-//    int sqlret = bd_conectar();
-//    if(sqlret != 0) return(sqlret);
-    /*
-    * registro señales necesarias para cerrar correctamente el programa y
-    * para liberar recursos
-    */
-//    manejar_interrupciones();
-//    terminar(EXIT_SUCCESS);
+    /* Registro señales necesarias para cerrar correctamente el programa y
+     * para liberar recursos */
+    manejar_interrupciones();
+    terminar(EXIT_SUCCESS);
     return EXIT_SUCCESS;
 }
 
