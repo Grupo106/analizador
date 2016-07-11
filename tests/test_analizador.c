@@ -574,6 +574,70 @@ void test_coincide_stress(int cantidad_clases) {
     }
 }
 
+/*
+ * test_coincide_puerto
+ * --------------------------------------------------------------------------
+ *  Prueba la funcion coincide. Compara un paquete con una clase de trafico por
+ *  el puerto de origen o destino del paquete. Se prueba un caso por verdadero
+ *  y un caso por falso
+ *
+ *  En este caso de prueba se establecen los siguiente valores:
+ *
+ *  clase trafico   | direccion de red | puerto  | coincide
+ *  --------------- + ---------------- + ------- + --------
+ *  a               |                  | 22      | si
+ *  b               | 10.0.0.0/8       | 80      | no
+ *  c               | 10.0.0.0/8       | 22      | no
+ *
+ *  paquete | ip origen       | ip dest        | puerto origen | puerto dest
+ *  ------- + --------------- + -------------- + ------------- + -----------
+ *  x       | 192.168.122.177 | 200.150.180.210| 12345         | 22
+ */
+void test_coincide_puerto() {
+    struct clase a, b, c;
+    struct paquete x;
+    /* creo clases de trafico */
+    a.cant_subredes_a = 0;
+    a.cant_subredes_b = 0;
+    a.cant_puertos_a = 0;
+    a.cant_puertos_b = 0;
+    a.protocolo = 0;
+    a.puertos_a = malloc(sizeof(u_int16_t));
+    *(a.puertos_a) = 22;
+
+    b.cant_subredes_a = 1;
+    b.cant_subredes_b = 0;
+    b.cant_puertos_a = 0;
+    b.cant_puertos_b = 0;
+    b.protocolo = 0;
+    b.subredes_a = malloc(sizeof(struct subred));
+    inet_aton("10.0.0.0", &(b.subredes_a->red));
+    b.subredes_a->mascara = GET_MASCARA(8);
+    b.puertos_a = malloc(sizeof(u_int16_t));
+    *(b.puertos_a) = 80;
+
+    c.cant_subredes_a = 1;
+    c.cant_subredes_b = 0;
+    c.cant_puertos_a = 0;
+    c.cant_puertos_b = 0;
+    c.protocolo = 0;
+    c.subredes_a = malloc(sizeof(struct subred));
+    inet_aton("10.0.0.0", &(c.subredes_a->red));
+    c.subredes_a->mascara = GET_MASCARA(8);
+    c.puertos_a = malloc(sizeof(u_int16_t));
+    *(c.puertos_a) = 22;
+
+    /* creo paquete */
+    inet_aton("192.168.122.177", &(x.origen));
+    inet_aton("200.150.180.210", &(x.destino));
+    x.puerto_origen = 12345;
+    x.puerto_destino = 22;
+
+    assert(coincide(&a, &x) == 1);
+    assert(coincide(&b, &x) == 0);
+    assert(coincide(&c, &x) == 0);
+}
+
 int main() {
     test_mascara();
     test_in_net();
@@ -589,7 +653,7 @@ int main() {
     test_coincide_muchas_subredes();
     test_coincide_subred_origen_destino();
     test_coincide_stress(50000000);
-    //test_coincide_puerto();
+    test_coincide_puerto();
     //test_coincide_muchos_puertos();
     //test_coincide_puerto_ab();
     printf("SUCCESS\n");

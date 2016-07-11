@@ -79,8 +79,8 @@ struct clase {
     int protocolo; /* Protocolo que aplica esta clase */
     struct subred *subredes_a; /* Array de subredes que definen el grupo A */
     struct subred *subredes_b; /* Array de subredes que definen el grupo B */
-    int *puertos_a; /* Array de puertos que definen el grupo A */
-    int *puertos_b; /* Array de puertos que definen el grupo B */
+    u_int16_t *puertos_a; /* Array de puertos que definen el grupo A */
+    u_int16_t *puertos_b; /* Array de puertos que definen el grupo B */
     char nombre[LONG_NOMBRE]; /* Nombre que identifica clase de trafico */
     char descripcion[LONG_DESCRIPCION]; /* Descripcion de clase de trafico */
 };
