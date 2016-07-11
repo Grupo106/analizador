@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "analizador.h"
 
 /*
@@ -126,4 +127,46 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
     /* solamente devuelve verdadero si todos los parametros que se compararon
      * son verdaderos. */
     return redes_A && redes_B && puerto_A && puerto_B && protocolo;
+}
+
+/**
+ * imprimir(clases, cantidad)
+ * ---------------------------------------------------------------------------
+ *  Imprime las clases de trafico en la salida estandar en formato JSON.
+ */
+int imprimir(const struct clase *clases, int cantidad)
+{
+    return clases_to_json(stdout, clases, cantidad);
+}
+
+/**
+ * to_json(file, clases, cantidad)
+ * ---------------------------------------------------------------------------
+ *  Escribe las clases de trafico en el archivo pasado por parametro en formato
+ *  JSON
+ */
+int clases_to_json(FILE* file, const struct clase *clases, int cantidad)
+{
+    int i;
+    /* inicio array */
+    fprintf(file, "[\n");
+    /* imprimo clases */
+    for(i = 0; i < cantidad; i++) {
+        fprintf(file, "  {\n"
+                      "    \"id\": %d,\n"
+                      "    \"nombre\": \"%s\",\n"
+                      "    \"descripcion\": \"%s\",\n"
+                      "    \"subida\": %d,\n"
+                      "    \"bajada\": %d\n"
+                      "  }%c\n",
+                      (clases + i)->id,
+                      (clases + i)->nombre,
+                      (clases + i)->descripcion,
+                      (clases + i)->bytes_subida,
+                      (clases + i)->bytes_bajada,
+                      i + 1 < cantidad ? ',' : ' ');
+    }
+    /* fin array */
+    fprintf(file, "]\n");
+    return 0;
 }

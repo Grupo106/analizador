@@ -10,6 +10,7 @@
 #ifndef ANALIZADOR_H
 #define ANALIZADOR_H
 
+#include <stdio.h>
 #include "paquete.h"
 #include "clase_trafico.h"
 
@@ -21,7 +22,7 @@
 /*
  * struct cidr_clase
  * ---------------------------------------------------------------------------
- * Relaciona una subred con un conjunto de clases que poseen ese rango en 
+ * Relaciona una subred con un conjunto de clases que poseen ese rango en
  * alguna de sus subredes.
  *
  * Estructura auxiliar que sirve para las búsquedas binarias de clases de
@@ -75,7 +76,7 @@ int coincide(const struct clase *clase, const struct paquete *paquete);
 /**
  * cidr_buscar_coincidencia(array, paquete, cantidad_clases)
  * ---------------------------------------------------------------------------
- * Busca la clase de trafico que mejor coincida con el paquete según su CIDR. 
+ * Busca la clase de trafico que mejor coincida con el paquete según su CIDR.
  * En caso de que ninguna clase de trafico coincida, devuelve NULL.
  */
 struct clase* cidr_buscar_coincidencia(const struct cidr_clase *array,
@@ -102,7 +103,7 @@ int puerto_buscar_coincidencia(const struct cidr_clase *array,
  * coincidencia crea una nueva clase de trafico en el array de clases de
  * trafico
  *
- * En caso de no encontrar coincidencia, se asume que pertenece a la clase 
+ * En caso de no encontrar coincidencia, se asume que pertenece a la clase
  * DEFAULT.
  *
  * Devuelve clase que se aplicó la coincidencia
@@ -152,7 +153,7 @@ enum contiene {
  * * SIN_COINCIDENCIA: no hay coincidencia entre a y b
  * * IGUALES: Ambas redes son iguales
  */
-enum contiene cidr_contiene(const struct cidr_clase *a , 
+enum contiene cidr_contiene(const struct cidr_clase *a ,
         const struct cidr_clase *b);
 
 /*
@@ -164,8 +165,8 @@ enum contiene cidr_contiene(const struct cidr_clase *a ,
  * Devuelve 0 si pudo insertar el elemento en el array, cualquier otro valor
  * en caso de error
  */
-int cidr_insertar(struct cidr_clase *array, 
-        const struct clase *clase, 
+int cidr_insertar(struct cidr_clase *array,
+        const struct clase *clase,
         int cantidad_clases);
 
 /**
@@ -176,6 +177,21 @@ int cidr_insertar(struct cidr_clase *array,
  * cantidad de coincidencias.
  */
 int puntaje(const struct clase*, const struct paquete*);
+
+/**
+ * imprimir(clases, cantidad)
+ * ---------------------------------------------------------------------------
+ *  Imprime las clases de trafico en la salida estandar en formato JSON.
+ */
+int imprimir(const struct clase *clases, int cantidad);
+
+/**
+ * to_json(file, clases, cantidad)
+ * ---------------------------------------------------------------------------
+ *  Escribe las clases de trafico en el archivo pasado por parametro en formato
+ *  JSON
+ */
+int clases_to_json(FILE* file, const struct clase *clases, int cantidad);
 
 /*
  * MACROS

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <netinet/in.h>
 #include "../src/analizador.h"
 
@@ -743,7 +744,7 @@ void test_coincide_puerto_origen_destino() {
  *  En este caso de prueba se establecen los siguiente valores:
  *
  *  clase trafico   | direccion de red | puerto  | protocolo  | coincide
- *  --------------- + ---------------- + ------- + ---------- + --------
+ *  =============== + ================ + ======= + ========== + ========
  *  a               |                  | 22      | tcp        | si
  * ---------------- + ---------------- + ------- + ---------- + --------
  *  b               | 10.0.0.0/8       | 22      | tcp        | no
@@ -796,6 +797,47 @@ void test_coincide_protocolo() {
     assert(coincide(&b, &x) == 0);
     assert(coincide(&c, &x) == 0);
 }
+
+/*
+ * test_imprimir
+ * --------------------------------------------------------------------------
+ *  Prueba la funcion imprimir. Imprime una lista de clases de trafico a la
+ *  salida estandar en formato JSON.
+ *
+ *  En este caso de prueba se establecen los siguiente valores:
+ *
+ *  clase trafico   | nombre | descripcion   | subida | bajada
+ *  =============== + ====== + ============= + ====== + =======
+ *  0               | SSH    | Proto ssh     | 25108  | 2105
+ *  --------------- + ------ + ------------- + ------ + ------
+ *  1               | HTTP   | Nav. web      | 15     | 11020
+ *  --------------- + ------ + ------------- + ------ + ------
+ *  2               | DNS    | Serv. nombres | 22111  | 53
+ */
+void test_imprimir() {
+    struct clase clases[3];
+    /* creo clases de trafico */
+    clases[0].id = 0;
+    strncpy(clases[0].nombre, "SSH", LONG_NOMBRE);
+    strncpy(clases[0].descripcion, "Proto ssh", LONG_DESCRIPCION);
+    clases[0].bytes_subida = 25108;
+    clases[0].bytes_bajada = 2105;
+
+    clases[1].id = 1;
+    strncpy(clases[1].nombre, "HTTP", LONG_NOMBRE);
+    strncpy(clases[1].descripcion, "Nav. Web", LONG_DESCRIPCION);
+    clases[1].bytes_subida = 15;
+    clases[1].bytes_bajada = 11020;
+
+    clases[2].id = 2;
+    strncpy(clases[2].nombre, "DNS", LONG_NOMBRE);
+    strncpy(clases[2].descripcion, "Serv. nombres", LONG_DESCRIPCION);
+    clases[2].bytes_subida = 22111;
+    clases[2].bytes_bajada = 53;
+
+    imprimir(clases, 3);
+}
+
 int main() {
     test_mascara();
     test_in_net();
@@ -815,6 +857,7 @@ int main() {
     test_coincide_muchos_puertos();
     test_coincide_puerto_origen_destino();
     test_coincide_protocolo();
+    test_imprimir();
     printf("SUCCESS\n");
     return 0;
 }
