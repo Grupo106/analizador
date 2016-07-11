@@ -60,18 +60,15 @@ int subred_comparar(const void *x, const void *y)
 int coincide(const struct clase *clase, const struct paquete *paquete)
 {
     int i = 0;
-    /* redes_A:
-     * redes_B:
-     * puerto_A:
-     * puerto_B:
-     * protocolo:
+    /*
      * Estas variables son banderas que se indican si un parametro del paquete
      * coincide con la clase
      *
-     * Si esta en 1 significa que se encontro ese parametro en el paquete
-     * Por defecto, si la clase no especifica ese parametro, se asume que se
+     * Si esta en 1 significa que se encontro ese parametro en el paquete Por
+     * defecto, si la clase no especifica ese parametro, se asume que se
      * encontro ese parametro, ya que al final se hace una operacion AND entre
-     * todos los flags.*/
+     * todos los flags.
+     */
     int redes_A = !(clase->cant_subredes_a > 0);
     int redes_B = !(clase->cant_subredes_b > 0);
     int puerto_A = !(clase->cant_puertos_a > 0);
@@ -137,8 +134,8 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
  * Inserta una clase en el array ordenado. Siempre se respetara el orden de las
  * direcciones de red declaradas en cidr_clase.
  *
- * Devuelve 0 si pudo insertar el elemento en el array, cualquier otro valor
- * en caso de error
+ * Devuelve 0 si pudo insertar el elemento en el array, cualquier otro valor en
+ * caso de error
  */
 int cidr_insertar(struct cidr_clase *array,
                   const struct clase *clase,
