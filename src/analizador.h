@@ -65,6 +65,14 @@ struct coincidencia {
  */
 
 /**
+ * coincide(clase, paquete)
+ * ---------------------------------------------------------------------------
+ * Compara un paquete con una clase de trafico. Si el paquete coincide con la
+ * clase devuelve 1, caso contrario devuelve cero
+ */
+int coincide(const struct clase *clase, const struct paquete *paquete);
+
+/**
  * cidr_buscar_coincidencia(array, paquete, cantidad_clases)
  * ---------------------------------------------------------------------------
  * Busca la clase de trafico que mejor coincida con el paquete según su CIDR. 

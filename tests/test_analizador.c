@@ -329,7 +329,7 @@ void crear_clase(struct clase* clase, const char *red, int prefijo) {
  *  3             | 10.3.0.0         | 255.255.128.0     | 16
  *  4             | 192.168.1.0      | 255.0.0.0         | 24
  *  5             | 172.16.77.0      | 255.255.255.0     | 24
- *  
+ *
  *  Como resultado deben quedar ordenadas de la siguiente forma
  *
  *  orden ingreso | direccion de red | mascara de subred | prefijo
@@ -374,7 +374,203 @@ void test_cidr_insertar() {
     for (i=0; i < 6; i++) {
         free(origen[i].subredes_a);
     }
+}
 
+/*
+ * test_coincide_subred
+ * --------------------------------------------------------------------------
+ *  Prueba la funcion coincide. Compara un paquete con una clase de trafico por
+ *  la direccion ip del paquete. Se prueba un caso por verdadero y un caso por
+ *  falso
+ *
+ *  En este caso de prueba se establecen los siguiente valores:
+ *
+ *  clase trafico   | direccion de red | prefijo
+ *  --------------- + ---------------- + --------
+ *  a               | 192.168.0.0      | 16
+ *  b               | 10.0.0.0         | 16
+ *
+ *  paquete | ip origen       | ip dest        | puerto origen | puerto dest
+ *  ------- + --------------- + -------------- + ------------- + -----------
+ *  x       | 192.168.122.177 | 200.150.180.210| 12345         | 80
+ */
+void test_coincide_subred() {
+    struct clase a, b;
+    struct paquete x;
+    /* creo clases de trafico */
+    a.cant_subredes_a = 1;
+    a.cant_subredes_b = 0;
+    a.cant_puertos_a = 0;
+    a.cant_puertos_b = 0;
+    a.protocolo = 0;
+    a.subredes_a = malloc(sizeof(struct subred));
+    inet_aton("192.168.0.0", &(a.subredes_a->red));
+    a.subredes_a->mascara = GET_MASCARA(16);
+
+    b.cant_subredes_a = 1;
+    b.cant_subredes_b = 0;
+    b.cant_puertos_a = 0;
+    b.cant_puertos_b = 0;
+    b.protocolo = 0;
+    b.subredes_a = malloc(sizeof(struct subred));
+    inet_aton("10.0.0.0", &(b.subredes_a->red));
+    b.subredes_a->mascara = GET_MASCARA(16);
+
+    /* creo paquete */
+    inet_aton("192.168.122.177", &(x.origen));
+    inet_aton("200.150.180.210", &(x.destino));
+    x.puerto_origen = 12345;
+    x.puerto_destino = 80;
+
+    assert(coincide(&a, &x) == 1);
+    assert(coincide(&b, &x) == 0);
+}
+
+/*
+ * test_coincide_muchas_subredes
+ * --------------------------------------------------------------------------
+ *  Prueba la funcion coincide. Compara un paquete con una clase de trafico por
+ *  la direccion ip del paquete. Se prueba un caso por verdadero y un caso por
+ *  falso. Las clases definen muchas subredes
+ *
+ *  En este caso de prueba se establecen los siguiente valores:
+ *
+ *  clase trafico   | direccion de red | prefijo
+ *  --------------- + ---------------- + --------
+ *  a               | 192.168.0.0      | 16
+ *                  | 172.17.0.0       | 24
+ *                  | 172.17.1.0       | 24
+ *  b               | 10.0.0.0         | 16
+ *                  | 177.200.1.0      | 25
+ *
+ *  paquete | ip origen       | ip dest        | puerto origen | puerto dest
+ *  ------- + --------------- + -------------- + ------------- + -----------
+ *  x       | 177.200.1.128   | 172.17.0.255   | 12345         | 80
+ */
+void test_coincide_muchas_subredes() {
+    struct clase a, b;
+    struct paquete x;
+    /* creo clases de trafico */
+    a.cant_subredes_a = 3;
+    a.cant_subredes_b = 0;
+    a.cant_puertos_a = 0;
+    a.cant_puertos_b = 0;
+    a.protocolo = 0;
+    a.subredes_a = malloc(3 * sizeof(struct subred));
+    inet_aton("192.168.0.0", &(a.subredes_a->red));
+    inet_aton("172.17.0.0", &((a.subredes_a + 1)->red));
+    inet_aton("172.17.1.0", &((a.subredes_a + 2)->red));
+    a.subredes_a->mascara = GET_MASCARA(16);
+    (a.subredes_a + 1)->mascara = GET_MASCARA(24);
+    (a.subredes_a + 2)->mascara = GET_MASCARA(24);
+
+    b.cant_subredes_a = 2;
+    b.cant_subredes_b = 0;
+    b.cant_puertos_a = 0;
+    b.cant_puertos_b = 0;
+    b.protocolo = 0;
+    b.subredes_a = malloc(2 * sizeof(struct subred));
+    inet_aton("10.0.0.0", &(b.subredes_a->red));
+    inet_aton("177.200.1.0", &((b.subredes_a + 1)->red));
+    b.subredes_a->mascara = GET_MASCARA(16);
+    (b.subredes_a + 1)->mascara = GET_MASCARA(25);
+
+    /* creo paquete */
+    inet_aton("177.200.1.128", &(x.origen));
+    inet_aton("172.17.0.255", &(x.destino));
+    x.puerto_origen = 12345;
+    x.puerto_destino = 80;
+
+    assert(coincide(&a, &x) == 1);
+    assert(coincide(&b, &x) == 0);
+}
+
+/*
+ * test_coincide_subred_origen_destino
+ * --------------------------------------------------------------------------
+ *  Prueba la funcion coincide. Compara un paquete con una clase de trafico por
+ *  la direccion ip del paquete. Se prueba un caso por verdadero y un caso por
+ *  falso. La el paquete debe coincidir en ip origen y destino
+ *
+ *  En este caso de prueba se establecen los siguiente valores:
+ *
+ *  clase trafico   | direccion de red a | direccion de red b
+ *  --------------- + ------------------ + ------------------
+ *  a               | 192.168.0.0/24     | 192.168.1.0/24
+ *  b               | 192.168.1.0/24     | 10.0.0.0/8
+ *
+ *  paquete | ip origen       | ip dest        | puerto origen | puerto dest
+ *  ------- + --------------- + -------------- + ------------- + -----------
+ *  x       | 192.168.1.1     | 192.168.0.121  | 12345         | 80
+ */
+void test_coincide_subred_origen_destino() {
+    struct clase a, b;
+    struct paquete x;
+    /* creo clases de trafico */
+    a.cant_subredes_a = 1;
+    a.cant_subredes_b = 1;
+    a.cant_puertos_a = 0;
+    a.cant_puertos_b = 0;
+    a.protocolo = 0;
+    a.subredes_a = malloc(sizeof(struct subred)); /* a */
+    inet_aton("192.168.0.0", &(a.subredes_a->red));
+    a.subredes_a->mascara = GET_MASCARA(24);
+    a.subredes_b = malloc(sizeof(struct subred)); /* b */
+    inet_aton("192.168.1.0", &(a.subredes_b->red));
+    a.subredes_b->mascara = GET_MASCARA(24);
+
+    b.cant_subredes_a = 1;
+    b.cant_subredes_b = 1;
+    b.cant_puertos_a = 0;
+    b.cant_puertos_b = 0;
+    b.protocolo = 0;
+    b.subredes_a = malloc(sizeof(struct subred)); /* a */
+    inet_aton("192.168.1.0", &(b.subredes_a->red));
+    b.subredes_a->mascara = GET_MASCARA(24);
+    b.subredes_b = malloc(sizeof(struct subred)); /* b */
+    inet_aton("10.0.0.0", &(b.subredes_b->red));
+    b.subredes_b->mascara = GET_MASCARA(8);
+
+    /* creo paquete */
+    inet_aton("192.168.1.1", &(x.origen));
+    inet_aton("192.168.0.121", &(x.destino));
+    x.puerto_origen = 12345;
+    x.puerto_destino = 80;
+
+    assert(coincide(&a, &x) == 1);
+    assert(coincide(&b, &x) == 0);
+}
+
+/*
+ * test_coincide_stress()
+ * --------------------------------------------------------------------------
+ *  Prueba de stress de la funcion coincide para evaluar el rendimiento del
+ *  algoritmo.
+ *  ### Parametros:
+ *    * cantidad_clases: cantidad de supuestas clases de trafico.
+ */
+void test_coincide_stress(int cantidad_clases) {
+    struct clase a;
+    struct paquete x;
+    /* creo clases de trafico */
+    a.cant_subredes_a = 1;
+    a.cant_subredes_b = 0;
+    a.cant_puertos_a = 0;
+    a.cant_puertos_b = 0;
+    a.protocolo = 0;
+    a.subredes_a = malloc(sizeof(struct subred)); /* a */
+    inet_aton("192.168.0.0", &(a.subredes_a->red));
+    a.subredes_a->mascara = GET_MASCARA(24);
+
+    /* creo paquete */
+    inet_aton("192.168.1.1", &(x.origen));
+    inet_aton("192.168.2.121", &(x.destino));
+    x.puerto_origen = 12345;
+    x.puerto_destino = 80;
+
+    for(int i = 0; i < cantidad_clases; i++) {
+        coincide(&a, &x);
+    }
 }
 
 int main() {
@@ -388,7 +584,13 @@ int main() {
     test_subred_comparar_mayor();
     test_subred_comparar_igual();
     test_subred_comparar_contenida();
-    test_cidr_insertar();
+    test_coincide_subred();
+    test_coincide_muchas_subredes();
+    test_coincide_subred_origen_destino();
+    test_coincide_stress(50000000);
+    //test_coincide_puerto();
+    //test_coincide_muchos_puertos();
+    //test_coincide_puerto_ab();
     printf("SUCCESS\n");
     return 0;
 }
