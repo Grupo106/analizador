@@ -63,7 +63,8 @@ int main() {
 * Cierra conexion de base de datos
 */
 static void terminar(int signum) {
-    syslog(LOG_WARNING, "Interrupción recibida %d\n", signum);
+    if(signum > 0)
+        syslog(LOG_WARNING, "Interrupción recibida %d\n", signum);
     bd_desconectar();
     closelog();
     exit(EXIT_SUCCESS);
