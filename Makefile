@@ -14,7 +14,7 @@ BUILD_DIR := build
 # * carpeta donde se crearan los binararios
 BIN_DIR := bin
 # * carpeta donde se instalarán los binarios productivos
-INSTALL_DIR := /usr/local/sbin
+INSTALL_DIR := /usr/local/bin
 # * carpeta dentro de BIN_DIR y BUILD_DIR donde se almacenaran los binarios
 # productivos
 RELEASE_DIR := release
