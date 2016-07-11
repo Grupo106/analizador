@@ -127,19 +127,3 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
      * son verdaderos. */
     return redes_A && redes_B && puerto_A && puerto_B && protocolo;
 }
-
-/*
- * cidr_insertar(array, clase, cantidad_clases)
- * ---------------------------------------------------------------------------
- * Inserta una clase en el array ordenado. Siempre se respetara el orden de las
- * direcciones de red declaradas en cidr_clase.
- *
- * Devuelve 0 si pudo insertar el elemento en el array, cualquier otro valor en
- * caso de error
- */
-int cidr_insertar(struct cidr_clase *array,
-                  const struct clase *clase,
-                  int cantidad_clases)
-{
-    return 1;
-}

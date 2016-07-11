@@ -315,68 +315,6 @@ void crear_clase(struct clase* clase, const char *red, int prefijo) {
 }
 
 /*
- * test_cidr_insertar
- * --------------------------------------------------------------------------
- *  Prueba insertar en orden las estructuras cidr_clase
- *
- *  En este caso de prueba se ingresaran las estructuras en el siguiente orden
- *
- *  orden ingreso | direccion de red | mascara de subred | prefijo
- *  ------------- + ---------------- + ----------------- + ------------
- *  0             | 10.1.0.0         | 255.255.0.0       | 16
- *  1             | 10.0.0.0         | 255.255.0.0       | 16
- *  2             | 10.10.0.0        | 255.255.0.0       | 17
- *  3             | 10.3.0.0         | 255.255.128.0     | 16
- *  4             | 192.168.1.0      | 255.0.0.0         | 24
- *  5             | 172.16.77.0      | 255.255.255.0     | 24
- *
- *  Como resultado deben quedar ordenadas de la siguiente forma
- *
- *  orden ingreso | direccion de red | mascara de subred | prefijo
- *  ------------- + ---------------- + ----------------- + ------------
- *  1             | 10.0.0.0         | 255.255.0.0       | 16
- *  0             | 10.1.0.0         | 255.255.0.0       | 16
- *  2             | 10.3.0.0         | 255.255.0.0       | 16
- *  3             | 10.10.0.0        | 255.255.128.0     | 17
- *  5             | 172.16.77.0      | 255.255.255.0     | 24
- *  4             | 192.168.1.0      | 255.255.255.0     | 24
- */
-void test_cidr_insertar() {
-    int ret = 0,
-        i = 0;
-    struct clase origen[6];
-    struct cidr_clase destino[6]; /* este es el array destino */
-
-    /* configuro las clases */
-    crear_clase(&(origen[0]), "10.1.0.0", 16);
-    crear_clase(&(origen[1]), "10.0.0.0", 16);
-    crear_clase(&(origen[2]), "10.10.0.0", 17);
-    crear_clase(&(origen[3]), "10.3.0.0", 16);
-    crear_clase(&(origen[4]), "192.168.1.0", 24);
-    crear_clase(&(origen[5]), "172.16.77.0", 24);
-
-    /* inserto las clases en el array */
-    while(i < 6 && ret == 0) {
-        ret = cidr_insertar(destino, &(origen[i]), i);
-        assert(ret == 0);
-        i++;
-    }
-
-    /* verifico que el array este ordenado */
-    assert(destino[0].clases == &(origen[1]));
-    assert(destino[1].clases == &(origen[0]));
-    assert(destino[2].clases == &(origen[2]));
-    assert(destino[3].clases == &(origen[3]));
-    assert(destino[4].clases == &(origen[5]));
-    assert(destino[5].clases == &(origen[4]));
-
-    /* libero memoria */
-    for (i=0; i < 6; i++) {
-        free(origen[i].subredes_a);
-    }
-}
-
-/*
  * test_coincide_subred
  * --------------------------------------------------------------------------
  *  Prueba la funcion coincide. Compara un paquete con una clase de trafico por
