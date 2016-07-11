@@ -552,6 +552,7 @@ void test_coincide_subred_origen_destino() {
 void test_coincide_stress(int cantidad_clases) {
     struct clase a;
     struct paquete x;
+    int i;
     /* creo clases de trafico */
     a.cant_subredes_a = 1;
     a.cant_subredes_b = 0;
@@ -568,7 +569,7 @@ void test_coincide_stress(int cantidad_clases) {
     x.puerto_origen = 12345;
     x.puerto_destino = 80;
 
-    for(int i = 0; i < cantidad_clases; i++) {
+    for(i = 0; i < cantidad_clases; i++) {
         coincide(&a, &x);
     }
 }
