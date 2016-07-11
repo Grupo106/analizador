@@ -35,13 +35,6 @@ static void terminar(int);
 */
 void manejar_interrupciones();
 
-/**
-* banner()
-* ---------------------------------------------------------------------------
-* Imprime banner con version del programa.
-*/
-void banner();
-
 int main() {
     struct clase *clases = NULL;
     int cant_clases = 0;
@@ -51,14 +44,14 @@ int main() {
     syslog(LOG_DEBUG, "Revision: %s (%s)", REVISION, BUILD_MODE);
     /* Conecto base de datos */
     int sqlret = bd_conectar();
-    if(sqlret != 0) {
+    if (sqlret != 0) {
         fprintf(stderr, "Error al conectar a la base de datos");
         exit(sqlret);
     }
     cant_clases = get_clases(&clases, NULL);
     imprimir(clases, cant_clases);
     /* Registro señales necesarias para cerrar correctamente el programa y
-     * para liberar recursos */
+     * para liberar recursos. */
     manejar_interrupciones();
     terminar(EXIT_SUCCESS);
     return EXIT_SUCCESS;
@@ -86,18 +79,4 @@ void manejar_interrupciones() {
     signal(SIGINT, terminar);
     signal(SIGTERM, terminar);
     signal(SIGQUIT, terminar);
-}
-
-/**
-* banner()
-* ---------------------------------------------------------------------------
-* Imprime banner con version del programa
-*/
-void banner() {
-    printf("\
----------------------------------------------------------------------------\n\
-Grupo 106 - Universidad Nacional de La Matanza. 2016\n\
-%s - Revision: %s (%s)\n\
----------------------------------------------------------------------------\n",
-     PROGRAM, REVISION, BUILD_MODE);
 }

@@ -75,5 +75,6 @@ void print_sqlca() {
                                                           sqlca.sqlwarn[7]);
     syslog(LOG_ERR, "sqlstate: %5s\n", sqlca.sqlstate);
     syslog(LOG_ERR, "===============\n");
+    fprintf(stderr, "Error: %s\n", sqlca.sqlerrm.sqlerrmc);
     exit(EXIT_FAILURE);
 }

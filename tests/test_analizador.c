@@ -339,20 +339,14 @@ void test_coincide_subred() {
     struct clase a, b;
     struct paquete x;
     /* creo clases de trafico */
+    init_clase(&a);
     a.cant_subredes_a = 1;
-    a.cant_subredes_b = 0;
-    a.cant_puertos_a = 0;
-    a.cant_puertos_b = 0;
-    a.protocolo = 0;
     a.subredes_a = malloc(sizeof(struct subred));
     inet_aton("192.168.0.0", &(a.subredes_a->red));
     a.subredes_a->mascara = GET_MASCARA(16);
 
+    init_clase(&b);
     b.cant_subredes_a = 1;
-    b.cant_subredes_b = 0;
-    b.cant_puertos_a = 0;
-    b.cant_puertos_b = 0;
-    b.protocolo = 0;
     b.subredes_a = malloc(sizeof(struct subred));
     inet_aton("10.0.0.0", &(b.subredes_a->red));
     b.subredes_a->mascara = GET_MASCARA(16);
