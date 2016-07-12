@@ -58,6 +58,7 @@ void bd_commit() {
 void bd_paquetes(struct s_analizador *analizador,
                  int (*callback)(struct s_analizador*, struct paquete*))
 {
+    int cantidad = 0;
     EXEC SQL BEGIN DECLARE SECTION;
         char *stmt = "SELECT ip_origen, ip_destino, puerto_origen, puerto_destino, protocolo, bytes, direccion FROM paquetes;";
         int _origen,
@@ -94,8 +95,10 @@ void bd_paquetes(struct s_analizador *analizador,
         paquete.bytes = _bytes;
         paquete.direccion = _direccion;
         callback(analizador, &paquete);
+        cantidad++;
     }
 
+    syslog(LOG_DEBUG, "Se analizaron %d paquetes", cantidad);
     EXEC SQL CLOSE cursor1;
 
     EXEC SQL COMMIT;
