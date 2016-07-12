@@ -3,6 +3,7 @@
 #include <syslog.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <time.h>
 
 #include "bd.h"
 #include "paquete.h"
@@ -60,7 +61,9 @@ void bd_paquetes(struct s_analizador *analizador,
 {
     int cantidad = 0;
     EXEC SQL BEGIN DECLARE SECTION;
-        char *stmt = "SELECT ip_origen, ip_destino, puerto_origen, puerto_destino, protocolo, bytes, direccion FROM paquetes;";
+        char *stmt = "SELECT ip_origen, ip_destino, puerto_origen,"
+                     "       puerto_destino, protocolo, bytes, direccion "
+                     "FROM paquetes;";
         int _origen,
             _destino,
             _puerto_origen,
@@ -77,6 +80,7 @@ void bd_paquetes(struct s_analizador *analizador,
 
     EXEC SQL WHENEVER NOT FOUND DO BREAK;
 
+    clock_t start = clock();
     while (1)
     {
         struct paquete paquete;
@@ -97,8 +101,11 @@ void bd_paquetes(struct s_analizador *analizador,
         callback(analizador, &paquete);
         cantidad++;
     }
+    clock_t end = clock();
+    double tiempo = (end - start) / (double) CLOCKS_PER_SEC;
 
-    syslog(LOG_DEBUG, "Se analizaron %d paquetes", cantidad);
+    syslog(LOG_DEBUG, "Se analizaron %d paquetes en %.2f segundos",
+                       cantidad, tiempo);
     EXEC SQL CLOSE cursor1;
 
     EXEC SQL COMMIT;
