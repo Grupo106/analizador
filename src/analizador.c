@@ -260,16 +260,24 @@ void free_clase(struct clase *clase) {
 
 int analizar_paquete(struct s_analizador* analizador, struct paquete* paquete)
 {
+    int coincidencias = 0;
     for (int i = 1; i < analizador->cant_clases; i++) {
         struct clase *clase = (analizador->clases + i);
         int c = coincide(clase, paquete);
-        printf("%d\n", c);
+        coincidencias += c;
         if(c) {
            if(paquete->direccion == ENTRANTE)
                clase->bytes_bajada += paquete->bytes;
            else if(paquete->direccion == SALIENTE)
                clase->bytes_subida += paquete->bytes;
         }
+    }
+    /* lo agrego a la clase default */
+    if(!coincidencias) {
+        if(paquete->direccion == ENTRANTE)
+            analizador->clases->bytes_bajada += paquete->bytes;
+        else if(paquete->direccion == SALIENTE)
+            analizador->clases->bytes_subida += paquete->bytes;
     }
     return 0;
 }
