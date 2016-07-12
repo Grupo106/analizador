@@ -72,6 +72,10 @@ int main() {
     clock_t end = clock();
     /* calculo tiempo de analisis. */
     double tiempo = (end - start) / (double) CLOCKS_PER_SEC;
+#ifdef DEBUG
+    printf("Se analizaron %d paquetes en %.2f segundos",
+            cantidad_paquetes, tiempo);
+#endif
     syslog(LOG_DEBUG, "Se analizaron %d paquetes en %.2f segundos",
            cantidad_paquetes, tiempo);
     terminar(EXIT_SUCCESS);
