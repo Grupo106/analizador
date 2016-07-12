@@ -811,6 +811,7 @@ void test_coincide_protocolo() {
  *  2               | DNS    | Serv. nombres | 22111  | 53
  */
 void test_imprimir() {
+    struct s_analizador analizador;
     struct clase clases[3];
     /* creo clases de trafico */
     clases[0].id = 0;
@@ -831,7 +832,10 @@ void test_imprimir() {
     clases[2].bytes_subida = 22111;
     clases[2].bytes_bajada = 53;
 
-    imprimir(clases, 3);
+    analizador.clases = clases;
+    analizador.cant_clases = 3;
+
+    imprimir(&analizador);
 }
 
 int main() {

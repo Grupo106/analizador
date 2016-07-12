@@ -35,24 +35,33 @@ static void terminar(int);
 */
 void manejar_interrupciones();
 
+static struct s_analizador analizador;
+
 int main() {
-    struct clase *clases = NULL;
-    int cant_clases = 0;
+    analizador.clases = NULL;
+    analizador.cant_clases = 0;
     /* Inicializo logs */
     openlog(PROGRAM, LOG_CONS | LOG_PID, LOG_LOCAL0);
     /* Muestro informacion del build */
-    syslog(LOG_DEBUG, "Revision: %s (%s)", REVISION, BUILD_MODE);
+    syslog(LOG_DEBUG, "%s Revision: %s (%s)", PROGRAM, REVISION, BUILD_MODE);
+    /* Registro señales necesarias para cerrar correctamente el programa y
+     * para liberar recursos. */
+    manejar_interrupciones();
     /* Conecto base de datos */
     int sqlret = bd_conectar();
     if (sqlret != 0) {
         fprintf(stderr, "Error al conectar a la base de datos");
         exit(sqlret);
     }
-    cant_clases = get_clases(&clases, NULL);
-    imprimir(clases, cant_clases);
-    /* Registro señales necesarias para cerrar correctamente el programa y
-     * para liberar recursos. */
-    manejar_interrupciones();
+    /* obtengo clases */
+    if (get_clases(&analizador) != 0) {
+        fprintf(stderr, "Error al obtener las clases de trafico\n");
+        exit(EXIT_FAILURE);
+    }
+    /* analizo paquetes */
+    bd_paquetes(&analizador, analizar_paquete);
+    /* imprimo resultado */
+    imprimir(&analizador);
     terminar(EXIT_SUCCESS);
     return EXIT_SUCCESS;
 }
@@ -67,6 +76,8 @@ static void terminar(int signum) {
         syslog(LOG_WARNING, "Interrupción recibida %d\n", signum);
     bd_desconectar();
     closelog();
+    for(int i = 0; i < analizador.cant_clases; i++)
+        free_clase(analizador.clases + i);
     exit(EXIT_SUCCESS);
 }
 

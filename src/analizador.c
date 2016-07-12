@@ -136,9 +136,9 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
  * ---------------------------------------------------------------------------
  *  Imprime las clases de trafico en la salida estandar en formato JSON.
  */
-int imprimir(const struct clase *clases, int cantidad)
+int imprimir(const struct s_analizador *analizador)
 {
-    return clases_to_json(stdout, clases, cantidad);
+    return clases_to_json(stdout, analizador);
 }
 
 /**
@@ -147,9 +147,11 @@ int imprimir(const struct clase *clases, int cantidad)
  *  Escribe las clases de trafico en el archivo pasado por parametro en formato
  *  JSON
  */
-int clases_to_json(FILE* file, const struct clase *clases, int cantidad)
+int clases_to_json(FILE* file, const struct s_analizador *analizador)
 {
     int i;
+    int cantidad = analizador->cant_clases;
+    struct clase* clases = analizador->clases;
     /* inicio array */
     fprintf(file, "[\n");
     /* imprimo clases */
@@ -184,11 +186,11 @@ int clases_to_json(FILE* file, const struct clase *clases, int cantidad)
  *    * cfg: Puntero a la configuracion del analizador que contiene los
  *           parametros por los cuales se seleccionaran las clases.
  */
-int get_clases(struct clase **clases, const struct config *cfg)
+int get_clases(struct s_analizador *analizador)
 {
     struct clase *c;
-    (void) cfg; /* XXX: ignoro parametro */
-    c = *clases = malloc(4 * sizeof(struct clase));
+    analizador->cant_clases = 4;
+    c = analizador->clases = malloc(4 * sizeof(struct clase));
     /* La primer clase es la default */
     init_clase(c);
     strncpy(c->nombre, "Default", LONG_NOMBRE);
@@ -219,7 +221,7 @@ int get_clases(struct clase **clases, const struct config *cfg)
     c->cant_puertos_a = 1;
     c->puertos_a = malloc(sizeof(u_int16_t));
     *(c->puertos_a) = 443;
-    return 4;
+    return 0;
 }
 
 /**
@@ -254,4 +256,20 @@ void free_clase(struct clase *clase) {
     free(clase->subredes_b);
     free(clase->puertos_a);
     free(clase->puertos_b);
+}
+
+int analizar_paquete(struct s_analizador* analizador, struct paquete* paquete)
+{
+    for (int i = 1; i < analizador->cant_clases; i++) {
+        struct clase *clase = (analizador->clases + i);
+        int c = coincide(clase, paquete);
+        printf("%d\n", c);
+        if(c) {
+           if(paquete->direccion == ENTRANTE)
+               clase->bytes_bajada += paquete->bytes;
+           else if(paquete->direccion == SALIENTE)
+               clase->bytes_subida += paquete->bytes;
+        }
+    }
+    return 0;
 }

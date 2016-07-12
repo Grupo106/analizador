@@ -2,6 +2,7 @@
 #define DB_H
 
 #include "paquete.h"
+#include "analizador.h"
 
 /**
  * bd_conectar()
@@ -23,5 +24,14 @@ void bd_desconectar();
  * Hace un commit de la transaccion en la base de datos
  */
 void bd_commit();
+
+/**
+ * bd_paquetes(*clases, *cfg)
+ * -------------------------------------------------------------------------
+ * Obtiene los paquetes capturados segun configuracion pasada por parametro y
+ * llama a la funcion callback pasada por parametro.
+ */
+void bd_paquetes(struct s_analizador*,
+                 int (*callback)(struct s_analizador*, struct paquete*));
 
 #endif /* DB_H */

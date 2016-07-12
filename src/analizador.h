@@ -19,9 +19,9 @@
  * ===========================================================================
  */
 
-struct config {
-    int min;
-    int max;
+struct s_analizador {
+    int cant_clases;
+    struct clase* clases;
 };
 
 /*
@@ -188,7 +188,7 @@ int puntaje(const struct clase*, const struct paquete*);
  * ---------------------------------------------------------------------------
  *  Imprime las clases de trafico en la salida estandar en formato JSON.
  */
-int imprimir(const struct clase *clases, int cantidad);
+int imprimir(const struct s_analizador *analizador);
 
 /**
  * to_json(file, clases, cantidad)
@@ -196,7 +196,7 @@ int imprimir(const struct clase *clases, int cantidad);
  *  Escribe las clases de trafico en el archivo pasado por parametro en formato
  *  JSON
  */
-int clases_to_json(FILE* file, const struct clase *clases, int cantidad);
+int clases_to_json(FILE* file, const struct s_analizador*);
 
 /**
  * get_clases(**clases, *cfg)
@@ -209,7 +209,7 @@ int clases_to_json(FILE* file, const struct clase *clases, int cantidad);
  *    * cfg: Puntero a la configuracion del analizador que contiene los
  *           parametros por los cuales se seleccionaran las clases.
  */
-int get_clases(struct clase **clases, const struct config *cfg);
+int get_clases(struct s_analizador*);
 
 /**
  * init_clase
@@ -224,6 +224,8 @@ void init_clase(struct clase *clase);
  *  Libera memoria ocupada por una clase de trafico
  */
 void free_clase(struct clase *clase);
+
+int analizar_paquete(struct s_analizador*, struct paquete*);
 
 /*
  * MACROS
