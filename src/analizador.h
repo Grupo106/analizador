@@ -19,9 +19,15 @@
  * ===========================================================================
  */
 
+/*
+ * struct s_analizador
+ * ---------------------------------------------------------------------------
+ * Configuracion del analizador. Contiene el array de clases de trafico
+ * instaladas y la configuracion para la seleccion de paquetes.
+ */
 struct s_analizador {
-    int cant_clases;
-    struct clase* clases;
+    int cant_clases; /* cantidad de clases de clases de trafico */
+    struct clase* clases; /* array de clases de trafico */
 };
 
 /*

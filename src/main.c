@@ -21,21 +21,25 @@
     #define BUILD_MODE "produccion"
 #endif /* BUILD_MODE */
 
-/**
-* terminar()
-* ---------------------------------------------------------------------------
-* Termina el programa de forma segura. Cierra conexion de base de datos.
-*/
+/*
+ * terminar()
+ * ---------------------------------------------------------------------------
+ *  Termina el programa de forma segura. Cierra conexion de base de datos.
+ */
 static void terminar(int);
 
-/**
-* manejar_interrupciones()
-* ---------------------------------------------------------------------------
-* Registra señales que serán enviadas por el sistema operativo para el correcto
-* cierre de base de datos.
-*/
+/*
+ * manejar_interrupciones()
+ * ---------------------------------------------------------------------------
+ *  Registra señales que serán enviadas por el sistema operativo para el
+ *  correcto cierre de base de datos.
+ */
 void manejar_interrupciones();
 
+/*
+ * Configuracion del analizador. Contiene el array de clases de trafico
+ * instaladas y la configuracion para la seleccion de paquetes.
+ */
 static struct s_analizador analizador;
 
 int main() {
@@ -66,6 +70,7 @@ int main() {
     /* imprimo resultado */
     imprimir(&analizador);
     clock_t end = clock();
+    /* calculo tiempo de analisis. */
     double tiempo = (end - start) / (double) CLOCKS_PER_SEC;
     syslog(LOG_DEBUG, "Se analizaron %d paquetes en %.2f segundos",
            cantidad_paquetes, tiempo);
@@ -73,11 +78,11 @@ int main() {
     return EXIT_SUCCESS;
 }
 
-/**
-* terminar()
-* ---------------------------------------------------------------------------
-* Cierra conexion de base de datos
-*/
+/*
+ * terminar()
+ * ---------------------------------------------------------------------------
+ * Cierra conexion de base de datos
+ */
 static void terminar(int signum) {
     if(signum > 0)
         syslog(LOG_WARNING, "Interrupción recibida %d\n", signum);
@@ -88,12 +93,12 @@ static void terminar(int signum) {
     exit(EXIT_SUCCESS);
 }
 
-/**
-* manejar_interrupciones()
-* ---------------------------------------------------------------------------
-* Registra señales que serán enviadas por el sistema operativo para el correcto
-* cierre de base de datos
-*/
+/*
+ * manejar_interrupciones()
+ * ---------------------------------------------------------------------------
+ *  Registra señales que serán enviadas por el sistema operativo para el
+ *  correcto cierre de base de datos
+ */
 void manejar_interrupciones() {
     signal(SIGINT, terminar);
     signal(SIGTERM, terminar);
