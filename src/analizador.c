@@ -269,9 +269,9 @@ int analizar_paquete(struct s_analizador* analizador, struct paquete* paquete)
         c = coincide(clase, paquete);
         coincidencias += c;
         if (c) {
-            if(paquete->direccion == ENTRANTE)
+            if (paquete->direccion == ENTRANTE)
                 clase->bytes_bajada += paquete->bytes;
-            else if(paquete->direccion == SALIENTE)
+            else
                 clase->bytes_subida += paquete->bytes;
         }
     }
@@ -279,7 +279,7 @@ int analizar_paquete(struct s_analizador* analizador, struct paquete* paquete)
     if(!coincidencias) {
         if(paquete->direccion == ENTRANTE)
             analizador->clases->bytes_bajada += paquete->bytes;
-        else if(paquete->direccion == SALIENTE)
+        else
             analizador->clases->bytes_subida += paquete->bytes;
     }
     return 0;
