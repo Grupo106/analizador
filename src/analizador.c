@@ -267,7 +267,7 @@ int analizar_paquete(struct s_analizador* analizador, struct paquete* paquete)
     for (i = 1; i < analizador->cant_clases; i++) {
         clase = (analizador->clases + i);
         c = coincide(clase, paquete);
-        coincidencias += c;
+        coincidencias |= c;
         if (c) {
             if (paquete->direccion == ENTRANTE)
                 clase->bytes_bajada += paquete->bytes;
