@@ -59,6 +59,7 @@ int bd_paquetes(struct s_analizador *analizador,
                  int (*callback)(struct s_analizador*, struct paquete*))
 {
     int cantidad = 0;
+    struct paquete paquete;
     EXEC SQL BEGIN DECLARE SECTION;
         char *stmt = "SELECT ip_origen, ip_destino, puerto_origen,"
                      "       puerto_destino, protocolo, bytes, direccion "
@@ -81,7 +82,6 @@ int bd_paquetes(struct s_analizador *analizador,
 
     while (1)
     {
-        struct paquete paquete;
         EXEC SQL FETCH cursor1 INTO :_origen,
                                     :_destino,
                                     :_puerto_origen,

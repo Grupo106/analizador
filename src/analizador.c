@@ -260,16 +260,18 @@ void free_clase(struct clase *clase) {
 
 int analizar_paquete(struct s_analizador* analizador, struct paquete* paquete)
 {
-    int coincidencias = 0;
-    for (int i = 1; i < analizador->cant_clases; i++) {
-        struct clase *clase = (analizador->clases + i);
-        int c = coincide(clase, paquete);
+    int coincidencias = 0,
+        c = 0,
+        i = 0;
+    struct clase *clase = (analizador->clases + i);
+    for (i = 1; i < analizador->cant_clases; i++) {
+        c = coincide(clase, paquete);
         coincidencias += c;
-        if(c) {
-           if(paquete->direccion == ENTRANTE)
-               clase->bytes_bajada += paquete->bytes;
-           else if(paquete->direccion == SALIENTE)
-               clase->bytes_subida += paquete->bytes;
+        if (c) {
+            if(paquete->direccion == ENTRANTE)
+                clase->bytes_bajada += paquete->bytes;
+            else if(paquete->direccion == SALIENTE)
+                clase->bytes_subida += paquete->bytes;
         }
     }
     /* lo agrego a la clase default */
