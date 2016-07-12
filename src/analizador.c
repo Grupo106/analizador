@@ -263,8 +263,9 @@ int analizar_paquete(struct s_analizador* analizador, struct paquete* paquete)
     int coincidencias = 0,
         c = 0,
         i = 0;
-    struct clase *clase = (analizador->clases + i);
+    struct clase *clase;
     for (i = 1; i < analizador->cant_clases; i++) {
+        clase = (analizador->clases + i);
         c = coincide(clase, paquete);
         coincidencias += c;
         if (c) {
