@@ -838,6 +838,111 @@ void test_imprimir() {
     imprimir(&analizador);
 }
 
+/*
+ * test_analizar_paquete
+ * --------------------------------------------------------------------------
+ *  Prueba la funcion analizar_paquete. Compara un paquete con las clases de
+ *  trafico instaladas. Debe aumentar el contador de bytes de las clases.
+ *
+ *  En este caso de prueba se establecen los siguiente valores:
+ *
+ *  clase trafico   | direccion de red | puerto
+ *  =============== + ================ + =======
+ *   default        |                  |
+ * ---------------- + ---------------- + -------
+ *   c1             |  1.0.0.0/8       |
+ * ---------------- + ---------------- + -------
+ *   c2             |                  | 12
+ *
+ *  paquete | origen  | destino | p_origen | p_dest | bytes | direccion
+ *  ======= + ======= +======== + ======== + ====== + ===== | ==========
+ *   p0     | 1.1.1.1 | 2.2.2.2 |  1       |  11    |  10   | SALIENTE
+ *  ------- + ------- +-------- + -------- + ------ + ----- + ----------
+ *   p1     | 1.1.1.1 | 3.3.3.3 |  2       |  12    |  10   | SALIENTE
+ *  ------- + ------- +-------- + -------- + ------ + ----- + ----------
+ *   p2     | 2.2.2.2 | 1.1.1.1 |  11      |  1     |  10   | ENTRANTE
+ *  ------- + ------- +-------- + -------- + ------ + ----- + ----------
+ *   p3     | 8.8.8.8 | 2.2.2.2 |  53      |  1     |  10   | ENTRANTE
+ *  ------- + ------- +-------- + -------- + ------ + ----- + ----------
+ *
+ *
+ *  ### Resultado esperado
+ *
+ *  clase trafico   | subida | bajada
+ *  =============== + ====== + =======
+ *   default        | 0      | 10
+ *  --------------- + ------ + ------
+ *   c1             | 20     | 10
+ *  --------------- + ------ + ------
+ *   c2             | 10     | 0
+ */
+void test_analizar_paquete() {
+    struct s_analizador analizador;
+    struct clase clases[3];
+    struct paquete paquetes[4];
+
+    /* creo clases de trafico */
+    init_clase(clases);
+    strncpy(clases[0].nombre, "Default", LONG_NOMBRE);
+
+    init_clase(clases + 1);
+    strncpy(clases[1].nombre, "c1", LONG_NOMBRE);
+    clases[1].cant_subredes_a = 1;
+    clases[1].subredes_a = malloc(sizeof(struct subred));
+    inet_aton("1.0.0.0", &(clases[1].subredes_a->red));
+    clases[1].subredes_a->mascara = GET_MASCARA(8);
+
+    init_clase(clases + 2);
+    strncpy(clases[2].nombre, "c2", LONG_NOMBRE);
+    clases[2].cant_puertos_a = 1;
+    clases[2].puertos_a = malloc(sizeof(u_int16_t));
+    *(clases[2].puertos_a) = 12;
+
+    analizador.clases = clases;
+    analizador.cant_clases = 3;
+
+    /* creo paquetes */
+    inet_aton("1.1.1.1", &(paquetes[0].origen));
+    inet_aton("2.2.2.2", &(paquetes[0].destino));
+    paquetes[0].puerto_origen = 1;
+    paquetes[0].puerto_destino = 11;
+    paquetes[0].bytes = 10;
+    paquetes[0].direccion = SALIENTE;
+
+    inet_aton("1.1.1.1", &(paquetes[1].origen));
+    inet_aton("3.3.3.3", &(paquetes[1].destino));
+    paquetes[1].puerto_origen = 2;
+    paquetes[1].puerto_destino = 12;
+    paquetes[1].bytes = 10;
+    paquetes[1].direccion = SALIENTE;
+
+    inet_aton("2.2.2.2", &(paquetes[2].origen));
+    inet_aton("1.1.1.1", &(paquetes[2].destino));
+    paquetes[2].puerto_origen = 11;
+    paquetes[2].puerto_destino = 1;
+    paquetes[2].bytes = 10;
+    paquetes[2].direccion = ENTRANTE;
+
+    inet_aton("8.8.8.8", &(paquetes[3].origen));
+    inet_aton("2.2.2.2", &(paquetes[3].destino));
+    paquetes[3].puerto_origen = 53;
+    paquetes[3].puerto_destino = 1;
+    paquetes[3].bytes = 10;
+    paquetes[3].direccion = ENTRANTE;
+
+    /* comparo paquetes con las clases de trafico */
+    for (int i=0; i < 4; i++)
+        analizar_paquete(&analizador, paquetes + i);
+
+    /* Verifico que el resultado del analisis sea correcto */
+    assert(clases[0].bytes_subida == 0);
+    assert(clases[0].bytes_bajada == 10);
+    assert(clases[1].bytes_subida == 20);
+    assert(clases[1].bytes_bajada == 10);
+    assert(clases[2].bytes_subida == 10);
+    assert(clases[2].bytes_bajada == 0);
+}
+
 int main() {
     test_mascara();
     test_in_net();
@@ -858,6 +963,7 @@ int main() {
     test_coincide_puerto_origen_destino();
     test_coincide_protocolo();
     test_imprimir();
+    test_analizar_paquete();
     printf("SUCCESS\n");
     return 0;
 }
