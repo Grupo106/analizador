@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <syslog.h>
+#include <time.h>
 
 #include "bd.h"
 #include "analizador.h"
@@ -38,6 +39,7 @@ void manejar_interrupciones();
 static struct s_analizador analizador;
 
 int main() {
+    int cantidad_paquetes = 0;
     analizador.clases = NULL;
     analizador.cant_clases = 0;
     /* Inicializo logs */
@@ -58,10 +60,15 @@ int main() {
         fprintf(stderr, "Error al obtener las clases de trafico\n");
         exit(EXIT_FAILURE);
     }
+    clock_t start = clock();
     /* analizo paquetes */
-    bd_paquetes(&analizador, analizar_paquete);
+    cantidad_paquetes = bd_paquetes(&analizador, analizar_paquete);
     /* imprimo resultado */
     imprimir(&analizador);
+    clock_t end = clock();
+    double tiempo = (end - start) / (double) CLOCKS_PER_SEC;
+    syslog(LOG_DEBUG, "Se analizaron %d paquetes en %.2f segundos",
+           cantidad_paquetes, tiempo);
     terminar(EXIT_SUCCESS);
     return EXIT_SUCCESS;
 }

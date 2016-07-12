@@ -29,9 +29,10 @@ void bd_commit();
  * bd_paquetes(*clases, *cfg)
  * -------------------------------------------------------------------------
  * Obtiene los paquetes capturados segun configuracion pasada por parametro y
- * llama a la funcion callback pasada por parametro.
+ * llama a la funcion callback pasada por parametro. Devuelve la cantidad de
+ * paquetes analizados
  */
-void bd_paquetes(struct s_analizador*,
-                 int (*callback)(struct s_analizador*, struct paquete*));
+int bd_paquetes(struct s_analizador*,
+                int (*callback)(struct s_analizador*, struct paquete*));
 
 #endif /* DB_H */
