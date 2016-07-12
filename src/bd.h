@@ -32,7 +32,8 @@ void bd_commit();
  * llama a la funcion callback pasada por parametro. Devuelve la cantidad de
  * paquetes analizados
  */
-int bd_paquetes(struct s_analizador*,
-                int (*callback)(struct s_analizador*, struct paquete*));
+int bd_paquetes(struct s_analizador* analizador,
+                int (*callback)(const struct s_analizador*,
+                                const struct paquete*));
 
 #endif /* DB_H */

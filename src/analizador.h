@@ -225,7 +225,16 @@ void init_clase(struct clase *clase);
  */
 void free_clase(struct clase *clase);
 
-int analizar_paquete(struct s_analizador*, struct paquete*);
+/**
+ * analizar_paquete(s_analizador, paquete)
+ * --------------------------------------------------------------------------
+ *  Compara un paquete con las clases de trafico instaladas. En caso que no
+ *  coincida con ninuna, se agrega a la clase por defecto.
+ *
+ *  Devuelve 1 en caso que haya coincidencia con alguna clase de trafico, 0 en
+ *  caso de que se haya agregado el paquete a la clase por defecto.
+ */
+int analizar_paquete(const struct s_analizador*, const struct paquete*);
 
 /*
  * MACROS

@@ -258,29 +258,44 @@ void free_clase(struct clase *clase) {
     free(clase->puertos_b);
 }
 
-int analizar_paquete(struct s_analizador* analizador, struct paquete* paquete)
+int analizar_paquete(const struct s_analizador* analizador,
+                     const struct paquete* paquete)
 {
-    int coincidencias = 0,
-        c = 0,
-        i = 0;
-    struct clase *clase;
+    int coincidencias = 0; /* flag para saber si el paquete tuvo alguna
+                            * coincidencia*/
+    int c = 0; /* almacena el resultado de la comparacion con la clase */
+    int i = 0; /* iterador de clases */
+    struct clase *clase; /* puntero a clase para iterar. Sirve como alias */
+
+    /* Por defecto, la primer clase es la clase por default, por lo tanto
+     * empiezo a comparar con la clase 1 */
     for (i = 1; i < analizador->cant_clases; i++) {
-        clase = (analizador->clases + i);
-        c = coincide(clase, paquete);
-        coincidencias |= c;
-        if (c) {
+        clase = (analizador->clases + i); /* apunto a la clase */
+        c = coincide(clase, paquete); /* la comparo con el paquete */
+        coincidencias |= c; /* actualizo flag de coincidencia mediante OR */
+        if (c) { /* si hay coincidencia */
             if (paquete->direccion == ENTRANTE)
+                /* paquete entrante desde Internet, por lo tanto se suman los
+                 * bytes de bajada. */
                 clase->bytes_bajada += paquete->bytes;
             else
+                /* paquete saliente hacia Internet, por lo tanto se suman los
+                 * bytes de subida. */
                 clase->bytes_subida += paquete->bytes;
         }
     }
-    /* lo agrego a la clase default */
+    /* si no hubo coincidencia con ninguna clase lo agrego a la clase default*/
     if(!coincidencias) {
         if(paquete->direccion == ENTRANTE)
+            /* paquete entrante desde Internet, por lo tanto se suman los
+             * bytes de bajada. */
             analizador->clases->bytes_bajada += paquete->bytes;
         else
+            /* paquete saliente hacia Internet, por lo tanto se suman los
+             * bytes de subida. */
             analizador->clases->bytes_subida += paquete->bytes;
     }
-    return 0;
+    /* devuelvo si existio coincidencias con alguna clase de trafico que no sea
+     * la default. */
+    return coincidencias;
 }

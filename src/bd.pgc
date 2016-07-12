@@ -55,8 +55,9 @@ void bd_commit() {
  * Obtiene los paquetes capturados segun configuracion pasada por parametro.
  * Devuelve la cantidad de paquetes en el array de paquetes
  */
-int bd_paquetes(struct s_analizador *analizador,
-                 int (*callback)(struct s_analizador*, struct paquete*))
+int bd_paquetes(struct s_analizador* analizador,
+                int (*callback)(const struct s_analizador*,
+                                const struct paquete*))
 {
     int cantidad = 0;
     struct paquete paquete;
