@@ -37,7 +37,7 @@ REVISION := $(shell git describe --tags)
 # FLAGS
 # ---------------------------------------------------------------------------
 # * flags de gcc
-C_FLAGS := -Wall -Wextra \
+C_FLAGS := -Wall -Wextra -std=c99\
 			-D"REVISION=\"$(REVISION)\"" \
 			-D"PROGRAM=\"$(PROGRAM)\"" \
 			-I/usr/include/postgresql
