@@ -89,6 +89,7 @@ int bd_paquetes(struct s_analizador* analizador,
 
     EXEC SQL EXECUTE stmt1 INTO :paquetes;
 
+    #pragma omp parallel for private(i, paquete)
     for(i = 0; i < cantidad; i++) {
         paquete.origen.s_addr = htonl((paquetes + i)->ip_origen);
         paquete.destino.s_addr = htonl((paquetes + i)->ip_destino);
