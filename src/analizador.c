@@ -230,20 +230,7 @@ int get_clases(struct s_analizador *analizador)
  *  Inicializa una estructura de clase de trafico a valores por defecto
  */
 void init_clase(struct clase *clase) {
-    clase->id = 0;
-    *(clase->nombre) = '\0';
-    *(clase->descripcion) = '\0';
-    clase->cant_subredes_a = 0;
-    clase->cant_subredes_b = 0;
-    clase->cant_puertos_a = 0;
-    clase->cant_puertos_b = 0;
-    clase->protocolo = 0;
-    clase->bytes_subida = 0;
-    clase->bytes_bajada = 0;
-    clase->subredes_a = NULL;
-    clase->subredes_b = NULL;
-    clase->puertos_a = NULL;
-    clase->puertos_b = NULL;
+    memset(clase, 0, sizeof(struct clase));
 }
 
 /**
@@ -276,20 +263,20 @@ int analizar_paquete(const struct s_analizador* analizador,
         /* si hay coincidencia */
         if (c) {
             if (paquete->direccion == ENTRANTE)
-                #pragma omp critical
+                #pragma omp atomic
                 clase->bytes_bajada += paquete->bytes;
             else
-                #pragma omp critical
+                #pragma omp atomic
                 clase->bytes_subida += paquete->bytes;
         }
     }
     /* si no hubo coincidencia con ninguna clase lo agrego a la clase default*/
     if(coincidencias == 0) {
         if(paquete->direccion == ENTRANTE)
-            #pragma omp critical
+            #pragma omp atomic
             analizador->clases->bytes_bajada += paquete->bytes;
         else
-            #pragma omp critical
+            #pragma omp atomic
             analizador->clases->bytes_subida += paquete->bytes;
     }
     /* devuelvo si existio coincidencias con alguna clase de trafico que no sea
