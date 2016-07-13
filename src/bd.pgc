@@ -92,9 +92,9 @@ int bd_paquetes(struct s_analizador* analizador,
      */
     paquetes = malloc(sizeof(t_paquete) * cantidad);
     if (paquetes == NULL) {
-        fprintf(stderr, "No hay memoria disponible para %d de paquetes\n", 
+        fprintf(stderr, "No hay memoria disponible para analizar %d paquetes\n", 
                cantidad);
-        syslog(LOG_ERR, "No hay memoria disponible para %d de paquetes", 
+        syslog(LOG_ERR, "No hay memoria disponible para analizar %d paquetes", 
                cantidad);
         exit(EXIT_FAILURE);
     }
