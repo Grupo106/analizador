@@ -59,52 +59,42 @@ int bd_paquetes(struct s_analizador* analizador,
                 int (*callback)(const struct s_analizador*,
                                 const struct paquete*))
 {
-    int cantidad = 0;
+#define C 60000
     struct paquete paquete;
     EXEC SQL BEGIN DECLARE SECTION;
         char *stmt = "SELECT ip_origen, ip_destino, puerto_origen,"
                      "       puerto_destino, protocolo, bytes, direccion "
-                     "FROM paquetes;";
-        int _origen,
-            _destino,
-            _puerto_origen,
-            _puerto_destino,
-            _protocolo,
-            _bytes,
-            _direccion;
+                     "FROM paquetes";
+        int i;
+        typedef struct {
+            int ip_origen;
+            int ip_destino;
+            int puerto_origen;
+            int puerto_destino;
+            int protocolo;
+            int bytes;
+            int direccion;
+        } t_paquete;
+        t_paquete paquetes[C];
     EXEC SQL END DECLARE SECTION;
+    memset(paquetes, 0, sizeof(t_paquete) * C);
 
     EXEC SQL PREPARE stmt1 FROM :stmt;
 
-    EXEC SQL DECLARE cursor1 CURSOR FOR stmt1;
-    EXEC SQL OPEN cursor1;
+    EXEC SQL EXECUTE stmt1 INTO :paquetes;
 
-    EXEC SQL WHENEVER NOT FOUND DO BREAK;
-
-    while (1)
-    {
-        EXEC SQL FETCH cursor1 INTO :_origen,
-                                    :_destino,
-                                    :_puerto_origen,
-                                    :_puerto_destino,
-                                    :_protocolo,
-                                    :_bytes,
-                                    :_direccion;
-        paquete.origen.s_addr = htonl(_origen);
-        paquete.destino.s_addr = htonl(_destino);
-        paquete.puerto_origen = _puerto_origen;
-        paquete.puerto_destino = _puerto_destino;
-        paquete.protocolo = _protocolo;
-        paquete.bytes = _bytes;
-        paquete.direccion = _direccion;
+    for(i = 0; i < C; i++) {
+        paquete.origen.s_addr = htonl(paquetes[i].ip_origen);
+        paquete.destino.s_addr = htonl(paquetes[i].ip_destino);
+        paquete.puerto_origen = paquetes[i].puerto_origen;
+        paquete.puerto_destino = paquetes[i].puerto_destino;
+        paquete.protocolo = paquetes[i].protocolo;
+        paquete.bytes = paquetes[i].bytes;
+        paquete.direccion = paquetes[i].direccion;
         callback(analizador, &paquete);
-        cantidad++;
     }
-
-    EXEC SQL CLOSE cursor1;
-
     EXEC SQL COMMIT;
-    return cantidad;
+    return i;
 }
 
 /**
