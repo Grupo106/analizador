@@ -273,26 +273,23 @@ int analizar_paquete(const struct s_analizador* analizador,
         clase = (analizador->clases + i); /* apunto a la clase */
         c = coincide(clase, paquete); /* la comparo con el paquete */
         coincidencias |= c; /* actualizo flag de coincidencia mediante OR */
-        if (c) { /* si hay coincidencia */
+        /* si hay coincidencia */
+        if (c) {
             if (paquete->direccion == ENTRANTE)
-                /* paquete entrante desde Internet, por lo tanto se suman los
-                 * bytes de bajada. */
+                #pragma omp critical
                 clase->bytes_bajada += paquete->bytes;
             else
-                /* paquete saliente hacia Internet, por lo tanto se suman los
-                 * bytes de subida. */
+                #pragma omp critical
                 clase->bytes_subida += paquete->bytes;
         }
     }
     /* si no hubo coincidencia con ninguna clase lo agrego a la clase default*/
-    if(!coincidencias) {
+    if(coincidencias == 0) {
         if(paquete->direccion == ENTRANTE)
-            /* paquete entrante desde Internet, por lo tanto se suman los
-             * bytes de bajada. */
+            #pragma omp critical
             analizador->clases->bytes_bajada += paquete->bytes;
         else
-            /* paquete saliente hacia Internet, por lo tanto se suman los
-             * bytes de subida. */
+            #pragma omp critical
             analizador->clases->bytes_subida += paquete->bytes;
     }
     /* devuelvo si existio coincidencias con alguna clase de trafico que no sea
