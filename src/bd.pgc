@@ -59,12 +59,12 @@ int bd_paquetes(struct s_analizador* analizador,
                 int (*callback)(const struct s_analizador*,
                                 const struct paquete*))
 {
-#define C 60000
     struct paquete paquete;
     EXEC SQL BEGIN DECLARE SECTION;
-        char *stmt = "SELECT ip_origen, ip_destino, puerto_origen,"
+        const char *stmt = "SELECT ip_origen, ip_destino, puerto_origen,"
                      "       puerto_destino, protocolo, bytes, direccion "
                      "FROM paquetes";
+        const char *count = "SELECT count(1) FROM paquetes";
         int i;
         typedef struct {
             int ip_origen;
@@ -75,26 +75,34 @@ int bd_paquetes(struct s_analizador* analizador,
             int bytes;
             int direccion;
         } t_paquete;
-        t_paquete paquetes[C];
+        t_paquete *paquetes;
+        int cantidad;
     EXEC SQL END DECLARE SECTION;
-    memset(paquetes, 0, sizeof(t_paquete) * C);
 
     EXEC SQL PREPARE stmt1 FROM :stmt;
+    EXEC SQL PREPARE count1 FROM :count;
+
+    EXEC SQL EXECUTE count1 INTO :cantidad;
+
+    paquetes = malloc(sizeof(t_paquete) * cantidad);
+    memset(paquetes, 0, sizeof(t_paquete) * cantidad);
 
     EXEC SQL EXECUTE stmt1 INTO :paquetes;
 
-    for(i = 0; i < C; i++) {
-        paquete.origen.s_addr = htonl(paquetes[i].ip_origen);
-        paquete.destino.s_addr = htonl(paquetes[i].ip_destino);
-        paquete.puerto_origen = paquetes[i].puerto_origen;
-        paquete.puerto_destino = paquetes[i].puerto_destino;
-        paquete.protocolo = paquetes[i].protocolo;
-        paquete.bytes = paquetes[i].bytes;
-        paquete.direccion = paquetes[i].direccion;
+    for(i = 0; i < cantidad; i++) {
+        paquete.origen.s_addr = htonl((paquetes + i)->ip_origen);
+        paquete.destino.s_addr = htonl((paquetes + i)->ip_destino);
+        paquete.puerto_origen = (paquetes + i)->puerto_origen;
+        paquete.puerto_destino = (paquetes + i)->puerto_destino;
+        paquete.protocolo = (paquetes + i)->protocolo;
+        paquete.bytes = (paquetes + i)->bytes;
+        paquete.direccion = (paquetes + i)->direccion;
         callback(analizador, &paquete);
     }
+
+    free(paquetes);
     EXEC SQL COMMIT;
-    return i;
+    return cantidad;
 }
 
 /**

@@ -40,13 +40,13 @@ REVISION := $(shell git describe --tags)
 C_FLAGS := -Wall -Wextra -std=c99 -fopenmp\
 			-D"REVISION=\"$(REVISION)\"" \
 			-D"PROGRAM=\"$(PROGRAM)\"" \
-			-I/usr/include/postgresql
+			-I/usr/include/postgresql -openmp
 # * flags de produccion
 R_FLAGS := -O3
 # * flags de desarrollo
 D_FLAGS := -g -D"DEBUG"
 # * flash de link final
-LINK_FLAGS := -lecpg -lpcap
+LINK_FLAGS := -lecpg -lpcap -fopenmp
 POSTGRESQL_DB ?= "postgres"
 POSTGRESQL_USER ?= "postgres"
 POSTGRESQL_PASSWORD ?= "postgres"

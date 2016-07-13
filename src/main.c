@@ -67,6 +67,7 @@ int main() {
     clock_t start = clock();
     /* analizo paquetes */
     cantidad_paquetes = bd_paquetes(&analizador, analizar_paquete);
+    bd_desconectar();
     /* imprimo resultado */
     imprimir(&analizador);
     clock_t end = clock();
@@ -94,6 +95,7 @@ static void terminar(int signum) {
     closelog();
     for(int i = 0; i < analizador.cant_clases; i++)
         free_clase(analizador.clases + i);
+    free(analizador.clases);
     exit(EXIT_SUCCESS);
 }
 
