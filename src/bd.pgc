@@ -91,6 +91,13 @@ int bd_paquetes(struct s_analizador* analizador,
      * seccion de memoria con ceros
      */
     paquetes = malloc(sizeof(t_paquete) * cantidad);
+    if (paquetes == NULL) {
+        fprintf(stderr, "No hay memoria disponible para %d de paquetes\n", 
+               cantidad);
+        syslog(LOG_ERR, "No hay memoria disponible para %d de paquetes", 
+               cantidad);
+        exit(EXIT_FAILURE);
+    }
     memset(paquetes, 0, sizeof(t_paquete) * cantidad);
 
     /* obtengo los paquetes */
