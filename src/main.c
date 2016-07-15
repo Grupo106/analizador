@@ -38,23 +38,35 @@ static void terminar();
 void manejar_interrupciones();
 
 /*
+ * argumentos()
+ * ---------------------------------------------------------------------------
+ *  Maneja los argumentos pasados por parametro al programa. Devuelve cero en
+ *  caso de exito, cualquier otro numero en caso de error.
+ */
+static void argumentos(int argc, const char* argv[], struct s_analizador *cfg);
+
+/*
  * Configuracion del analizador. Contiene el array de clases de trafico
  * instaladas y la configuracion para la seleccion de paquetes.
+ *
+ * Lo declaro como variable global a este archivo porque lo necesito para
+ * liberar la memoria de las clases de trafico en la funcion terminar()
  */
 static struct s_analizador analizador;
 
-int main() {
+int main(int argc, const char *argv[])
+{
     int cantidad_paquetes;
     /* inicializo configuracion en cero */
     memset(&analizador, 0, sizeof(struct s_analizador));
-    analizador.tiempo_inicio = 1;
-    analizador.tiempo_fin = 1468594838;
     /* Inicializo logs */
     openlog(PROGRAM, LOG_CONS | LOG_PID, LOG_LOCAL0);
     /* Muestro informacion del build */
     syslog(LOG_DEBUG, "%s Revision: %s (%s)", PROGRAM, REVISION, BUILD_MODE);
-    /* Registro señales necesarias para cerrar correctamente el programa y
-     * para liberar recursos. */
+    /* Parseo argumentos */
+    argumentos(argc, argv, &analizador);
+    /* Registro señales necesarias para cerrar correctamente el programa y para
+     * liberar recursos. */
     manejar_interrupciones();
     /* Conecto base de datos */
     bd_conectar();
@@ -93,7 +105,8 @@ int main() {
  * ---------------------------------------------------------------------------
  * Cierra conexion de base de datos
  */
-static void terminar() {
+static void terminar()
+{
     bd_desconectar();
     closelog();
     for(int i = 0; i < analizador.cant_clases; i++)
@@ -107,7 +120,8 @@ static void terminar() {
  * --------------------------------------------------------------------------
  * Maneja interrupciones
  */
-static void handle (int signum) {
+static void handle (int signum)
+{
     syslog(LOG_WARNING, "Interrupción recibida %d\n", signum);
     terminar();
 }
@@ -118,8 +132,16 @@ static void handle (int signum) {
  *  Registra señales que serán enviadas por el sistema operativo para el
  *  correcto cierre de base de datos
  */
-void manejar_interrupciones() {
+void manejar_interrupciones()
+{
     signal(SIGINT, handle);
     signal(SIGTERM, handle);
     signal(SIGQUIT, handle);
+}
+
+static void argumentos(int argc, const char* argv[], struct s_analizador *cfg)
+{
+    /* inicio los valores por defecto */
+    cfg->tiempo_inicio = time(NULL) - 60;
+    cfg->tiempo_fin = time(NULL);
 }
