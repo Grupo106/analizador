@@ -83,27 +83,21 @@ int main(int argc, const char *argv[])
         fprintf(stderr, "Error al obtener las clases de trafico\n");
         exit(EXIT_FAILURE);
     }
-    clock_t start = clock();
     /* analizo paquetes */
     cantidad_paquetes = obtener_paquetes(&analizador, analizar_paquete);
     /* imprimo resultado */
     imprimir(&analizador);
-    clock_t end = clock();
-    /* calculo tiempo de analisis. */
-    double tiempo = (end - start) / (double) CLOCKS_PER_SEC;
 
 #ifdef DEBUG
-    printf("Se analizaron %d paquetes con %d clases en %.2f segundos\n",
+    printf("Se analizaron %d paquetes con %d clases\n",
            cantidad_paquetes,
-           analizador.cant_clases,
-           tiempo);
+           analizador.cant_clases);
 #endif
 
     syslog(LOG_DEBUG,
-           "Se analizaron %d paquetes con %d clases en %.2f segundos",
+           "Se analizaron %d paquetes con %d clases",
            cantidad_paquetes,
-           analizador.cant_clases,
-           tiempo);
+           analizador.cant_clases);
     terminar();
     return EXIT_SUCCESS;
 }
