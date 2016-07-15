@@ -3,6 +3,7 @@
 #include <signal.h>
 #include <syslog.h>
 #include <time.h>
+#include <string.h>
 
 #include "bd.h"
 #include "analizador.h"
@@ -26,7 +27,7 @@
  * ---------------------------------------------------------------------------
  *  Termina el programa de forma segura. Cierra conexion de base de datos.
  */
-static void terminar(int);
+static void terminar();
 
 /*
  * manejar_interrupciones()
@@ -43,9 +44,11 @@ void manejar_interrupciones();
 static struct s_analizador analizador;
 
 int main() {
-    int cantidad_paquetes = 0;
-    analizador.clases = NULL;
-    analizador.cant_clases = 0;
+    int cantidad_paquetes;
+    /* inicializo configuracion en cero */
+    memset(&analizador, 0, sizeof(struct s_analizador));
+    analizador.tiempo_inicio = 1;
+    analizador.tiempo_fin = 1468594838;
     /* Inicializo logs */
     openlog(PROGRAM, LOG_CONS | LOG_PID, LOG_LOCAL0);
     /* Muestro informacion del build */
@@ -54,20 +57,15 @@ int main() {
      * para liberar recursos. */
     manejar_interrupciones();
     /* Conecto base de datos */
-    int sqlret = bd_conectar();
-    if (sqlret != 0) {
-        fprintf(stderr, "Error al conectar a la base de datos");
-        exit(sqlret);
-    }
+    bd_conectar();
     /* obtengo clases */
-    if (obtener_clases(&analizador) != 0) {
+    if (obtener_clases(&analizador) < 0) {
         fprintf(stderr, "Error al obtener las clases de trafico\n");
         exit(EXIT_FAILURE);
     }
     clock_t start = clock();
     /* analizo paquetes */
     cantidad_paquetes = obtener_paquetes(&analizador, analizar_paquete);
-    bd_desconectar();
     /* imprimo resultado */
     imprimir(&analizador);
     clock_t end = clock();
@@ -81,12 +79,12 @@ int main() {
            tiempo);
 #endif
 
-    syslog(LOG_DEBUG, 
+    syslog(LOG_DEBUG,
            "Se analizaron %d paquetes con %d clases en %.2f segundos",
            cantidad_paquetes,
            analizador.cant_clases,
            tiempo);
-    terminar(EXIT_SUCCESS);
+    terminar();
     return EXIT_SUCCESS;
 }
 
@@ -95,9 +93,7 @@ int main() {
  * ---------------------------------------------------------------------------
  * Cierra conexion de base de datos
  */
-static void terminar(int signum) {
-    if(signum > 0)
-        syslog(LOG_WARNING, "Interrupción recibida %d\n", signum);
+static void terminar() {
     bd_desconectar();
     closelog();
     for(int i = 0; i < analizador.cant_clases; i++)
@@ -107,13 +103,23 @@ static void terminar(int signum) {
 }
 
 /*
+ * handle
+ * --------------------------------------------------------------------------
+ * Maneja interrupciones
+ */
+static void handle (int signum) {
+    syslog(LOG_WARNING, "Interrupción recibida %d\n", signum);
+    terminar();
+}
+
+/*
  * manejar_interrupciones()
  * ---------------------------------------------------------------------------
  *  Registra señales que serán enviadas por el sistema operativo para el
  *  correcto cierre de base de datos
  */
 void manejar_interrupciones() {
-    signal(SIGINT, terminar);
-    signal(SIGTERM, terminar);
-    signal(SIGQUIT, terminar);
+    signal(SIGINT, handle);
+    signal(SIGTERM, handle);
+    signal(SIGQUIT, handle);
 }

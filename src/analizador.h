@@ -26,8 +26,14 @@
  * instaladas y la configuracion para la seleccion de paquetes.
  */
 struct s_analizador {
-    int cant_clases; /* cantidad de clases de clases de trafico */
-    struct clase* clases; /* array de clases de trafico */
+    /* valor menor del intervalo de tiempo de paquetes a analizar. */
+    int tiempo_inicio;
+    /* valor mayor del intervalo de tiempo de paquetes a analizar. */
+    int tiempo_fin;
+    /* cantidad de clases de clases de trafico. */
+    int cant_clases;
+    /* array de clases de trafico. */
+    struct clase* clases;
 };
 
 /*

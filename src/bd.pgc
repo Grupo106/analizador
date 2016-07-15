@@ -63,10 +63,18 @@ int obtener_paquetes(struct s_analizador* analizador,
     int i;
     /* declaracion de variables usadas en postgres */
     EXEC SQL BEGIN DECLARE SECTION;
-        const char *stmt = "SELECT ip_origen, ip_destino, puerto_origen,"
-                     "       puerto_destino, protocolo, bytes, direccion "
-                     "FROM paquetes";
-        const char *count = "SELECT count(1) FROM paquetes";
+        const char *stmt = "SELECT ip_origen, ip_destino, puerto_origen, "
+                                  "puerto_destino, protocolo, bytes, "
+                                  "direccion "
+                           "FROM paquetes "
+                           "WHERE hora_captura "
+                           "BETWEEN to_timestamp(?) "
+                           "AND to_timestamp(?)";
+        const char *count = "SELECT count(1)"
+                            "FROM paquetes "
+                            "WHERE hora_captura "
+                            "BETWEEN to_timestamp(?) "
+                            "AND to_timestamp(?)";
         typedef struct {
             int ip_origen;
             int ip_destino;
@@ -78,30 +86,36 @@ int obtener_paquetes(struct s_analizador* analizador,
         } t_paquete;
         t_paquete *paquetes;
         int cantidad;
+        int t_min, t_max; /* intervalo de analisis */
     EXEC SQL END DECLARE SECTION;
+
+    t_min = analizador->tiempo_inicio;
+    t_max = analizador->tiempo_fin;
 
     /* preparo consultas */
     EXEC SQL PREPARE stmt1 FROM :stmt;
     EXEC SQL PREPARE count1 FROM :count;
 
     /* obtengo la cantidad de filas necesarias */
-    EXEC SQL EXECUTE count1 INTO :cantidad;
+    EXEC SQL EXECUTE count1 INTO :cantidad USING :t_min, :t_max;
 
     /* obtengo la memoria necesaria para cargar todas las filas e inicializo la
      * seccion de memoria con ceros.
      */
     paquetes = malloc(sizeof(t_paquete) * cantidad);
     if (paquetes == NULL) {
-        fprintf(stderr, "No hay memoria disponible para analizar %d paquetes\n", 
-               cantidad);
-        syslog(LOG_ERR, "No hay memoria disponible para analizar %d paquetes", 
+        fprintf(stderr,
+                "No hay memoria disponible para analizar %d paquetes\n",
+                cantidad);
+        syslog(LOG_ERR,
+               "No hay memoria disponible para analizar %d paquetes",
                cantidad);
         exit(EXIT_FAILURE);
     }
     memset(paquetes, 0, sizeof(t_paquete) * cantidad);
 
     /* obtengo los paquetes */
-    EXEC SQL EXECUTE stmt1 INTO :paquetes;
+    EXEC SQL EXECUTE stmt1 INTO :paquetes USING :t_min, :t_max;
 
     #pragma omp parallel for private(i, paquete)
     for(i = 0; i < cantidad; i++) {
@@ -166,7 +180,7 @@ int obtener_clases(struct s_analizador *analizador)
         c->puertos_a = malloc(sizeof(u_int16_t));
         *(c->puertos_a) = 443;
     }
-    return 0;
+    return CANT_PAQUETES;
 }
 
 /**
@@ -208,5 +222,5 @@ void print_sqlca() {
     syslog(LOG_ERR, "sqlstate: %5s\n", sqlca.sqlstate);
     syslog(LOG_ERR, "===============\n");
     fprintf(stderr, "Error: %s\n", sqlca.sqlerrm.sqlerrmc);
-    exit(EXIT_FAILURE);
+    exit(sqlca.sqlcode);
 }
