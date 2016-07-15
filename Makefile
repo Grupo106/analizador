@@ -105,6 +105,7 @@ dirs:
 # Limpia archivos generados por el make
 clean: banner
 	@rm -rf $(BUILD_DIR) $(BIN_DIR)
+	@rm *.gcno *.gcda
 	@echo "$@: Se limpiaron los archivos generados"
 
 # Instala binarios en el host (requiere privilegios de root)
