@@ -22,6 +22,8 @@
     #define BUILD_MODE "produccion"
 #endif /* BUILD_MODE */
 
+#define ARGV_LENGHT 16 /* tamaño maximo de cadenas pasadas por parametro */
+
 /*
  * terminar()
  * ---------------------------------------------------------------------------
@@ -57,8 +59,6 @@ static struct s_analizador analizador;
 int main(int argc, const char *argv[])
 {
     int cantidad_paquetes;
-    /* inicializo configuracion en cero */
-    memset(&analizador, 0, sizeof(struct s_analizador));
     /* Inicializo logs */
     openlog(PROGRAM, LOG_CONS | LOG_PID, LOG_LOCAL0);
     /* Muestro informacion del build */
@@ -139,9 +139,42 @@ void manejar_interrupciones()
     signal(SIGQUIT, handle);
 }
 
+/*
+ * argumentos()
+ * ---------------------------------------------------------------------------
+ *  Maneja los argumentos pasados por parametro al programa. Devuelve cero en
+ *  caso de exito, cualquier otro numero en caso de error.
+ *
+ *  ### Posibles parametros
+ *   * -h --help
+ *   * -v --version
+ *   * sin parametros: se crea un intervalo entre la cantidad de segundos
+ *                     prefijada en el archivo netcop.conf y el tiempo actual
+ *   * un parametro numerico: se crea intervalo entre la cantidad segundos
+ *                            pasada por parametro y el tiempo actual
+ *   * dos parametros numericos: intervalo en formato unixtime (cantidad de
+ *                               segundos desde el 1 de enero de 1970)
+ */
 static void argumentos(int argc, const char* argv[], struct s_analizador *cfg)
 {
-    /* inicio los valores por defecto */
-    cfg->tiempo_inicio = time(NULL) - 60;
-    cfg->tiempo_fin = time(NULL);
+    if (argc == 1) {
+        /* inicio los valores por defecto */
+        cfg->tiempo_inicio = time(NULL) - 60;
+        cfg->tiempo_fin = time(NULL);
+    } else {
+        /* si el primer parametro es -h o --help muestro mensaje de ayuda*/
+        if(strncmp(argv[1], "-h", ARGV_LENGHT) == 0 ||
+                strncmp(argv[1], "--help", ARGV_LENGHT) == 0) {
+            //ayuda();
+            exit(EXIT_SUCCESS);
+        }
+
+        /* si el primer parametro es -v o --verson muestro version */
+        if(strncmp(argv[1], "-v", ARGV_LENGHT) == 0 ||
+                strncmp(argv[1], "--version", ARGV_LENGHT) == 0) {
+            printf("%s - %s - %s\n", PROGRAM, REVISION, BUILD_MODE);
+            exit(EXIT_SUCCESS);
+        }
+        exit(2);
+    }
 }
