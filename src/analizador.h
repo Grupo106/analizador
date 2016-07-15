@@ -27,9 +27,9 @@
  */
 struct s_analizador {
     /* valor menor del intervalo de tiempo de paquetes a analizar. */
-    int tiempo_inicio;
+    unsigned int tiempo_inicio;
     /* valor mayor del intervalo de tiempo de paquetes a analizar. */
-    int tiempo_fin;
+    unsigned int tiempo_fin;
     /* cantidad de clases de clases de trafico. */
     int cant_clases;
     /* array de clases de trafico. */

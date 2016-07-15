@@ -9,20 +9,28 @@
 #include "analizador.h"
 
 #ifndef REVISION
-    #define REVISION "DESCONOCIDA"
+#define REVISION "DESCONOCIDA"
 #endif /* REVISION */
 
 #ifndef PROGRAM
-    #define PROGRAM "analizador"
+#define PROGRAM "analizador"
 #endif /* PROGRAM */
 
 #ifdef DEBUG
-    #define BUILD_MODE "desarrollo"
+#define BUILD_MODE "desarrollo"
 #else
-    #define BUILD_MODE "produccion"
+#define BUILD_MODE "produccion"
 #endif /* BUILD_MODE */
 
+#ifndef COPYLEFT
+#define COPYLEFT "(c) Netcop 2016 - Universidad Nacional de la Matanza"
+#endif /* PROGRAM */
+
 #define ARGV_LENGHT 16 /* tamaño maximo de cadenas pasadas por parametro */
+
+#define DEFAULT_SEGUNDOS 60 /* cantidad de segundos a analizar en caso de que
+                             * no se hayan definido parametros.
+                             */
 
 /*
  * terminar()
@@ -140,6 +148,30 @@ void manejar_interrupciones()
 }
 
 /*
+ * ayuda()
+ * --------------------------------------------------------------------------
+ *  Muestra mensaje de ayuda
+ */
+static void ayuda() {
+    printf("Uso: %s [-h] | [-v] | [segundos] | [inicio fin]\n\n"
+           "Este programa compara las clases de trafico intaladas con "
+           "los paquetes capturados en un intervalo de tiempo especifico. "
+           "Si no se especifica ningun parametro, se analizaran los paquetes "
+           "recibidos desde los segundos especificados en /etc/netcop.conf"
+           "\n\n"
+           "Parametros:\n"
+           "  -h, --help             Muestra esta ayuda.\n"
+           "  -v, --version          Muestra numero de version.\n"
+           "  segundos               Cantidad de segundos desde que se "
+                                     "analizarán los paquetes\n"
+           "  inicio fin             Intervalo de tiempo en los que se "
+                                     "analizaran los paquetes en formato "
+                                     "unixtime."
+           "\n%s\n"
+           , PROGRAM, COPYLEFT);
+}
+
+/*
  * argumentos()
  * ---------------------------------------------------------------------------
  *  Maneja los argumentos pasados por parametro al programa. Devuelve cero en
@@ -148,8 +180,7 @@ void manejar_interrupciones()
  *  ### Posibles parametros
  *   * -h --help
  *   * -v --version
- *   * sin parametros: se crea un intervalo entre la cantidad de segundos
- *                     prefijada en el archivo netcop.conf y el tiempo actual
+ *   * sin parametros: analiza los paquetes recibidos luego de DEFAULT_SEGUNDOS
  *   * un parametro numerico: se crea intervalo entre la cantidad segundos
  *                            pasada por parametro y el tiempo actual
  *   * dos parametros numericos: intervalo en formato unixtime (cantidad de
@@ -157,24 +188,48 @@ void manejar_interrupciones()
  */
 static void argumentos(int argc, const char* argv[], struct s_analizador *cfg)
 {
-    if (argc == 1) {
-        /* inicio los valores por defecto */
-        cfg->tiempo_inicio = time(NULL) - 60;
-        cfg->tiempo_fin = time(NULL);
-    } else {
-        /* si el primer parametro es -h o --help muestro mensaje de ayuda*/
+    unsigned int aux;
+    /* inicio los valores por defecto */
+    cfg->tiempo_inicio = time(NULL) - DEFAULT_SEGUNDOS;
+    cfg->tiempo_fin = time(NULL);
+    if (argc == 2) {
+        /* -h --help */
         if(strncmp(argv[1], "-h", ARGV_LENGHT) == 0 ||
                 strncmp(argv[1], "--help", ARGV_LENGHT) == 0) {
-            //ayuda();
+            ayuda();
             exit(EXIT_SUCCESS);
         }
 
-        /* si el primer parametro es -v o --verson muestro version */
+        /* -v --version */
         if(strncmp(argv[1], "-v", ARGV_LENGHT) == 0 ||
                 strncmp(argv[1], "--version", ARGV_LENGHT) == 0) {
             printf("%s - %s - %s\n", PROGRAM, REVISION, BUILD_MODE);
             exit(EXIT_SUCCESS);
         }
-        exit(2);
+
+        /* segundos */
+        if(sscanf(argv[1], "%u", &(aux)) != 1) {
+            fprintf(stderr, "%s: Parámetro desconocido\n", argv[1]);
+            ayuda();
+            exit(EXIT_FAILURE);
+        }
+        cfg->tiempo_inicio = time(NULL) - aux;
+    } else if (argc == 3) {
+        /* intervalo */
+        /* segundos */
+        if(sscanf(argv[1], "%u", &(aux)) != 1) {
+            fprintf(stderr, "%s: Parámetro desconocido\n", argv[1]);
+            ayuda();
+            exit(EXIT_FAILURE);
+        }
+        cfg->tiempo_inicio = aux;
+        if(sscanf(argv[2], "%u", &(aux)) != 1) {
+            fprintf(stderr, "%s: Parámetro desconocido\n", argv[2]);
+            ayuda();
+            exit(EXIT_FAILURE);
+        }
+        cfg->tiempo_fin = aux;
+    } else if (argc > 3) {
+        ayuda();
     }
 }
