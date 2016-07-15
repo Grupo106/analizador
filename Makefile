@@ -1,5 +1,5 @@
 # Banner que muestra al inicio
-BANNER = "$(PROGRAM) - Grupo 106 - Universidad Nacional de La Matanza. 2016"
+BANNER = "$(PROGRAM) - Netcop - Universidad Nacional de La Matanza. 2016"
 
 # Nombre del programa
 PROGRAM := analizador
@@ -105,7 +105,7 @@ dirs:
 # Limpia archivos generados por el make
 clean: banner
 	@rm -rf $(BUILD_DIR) $(BIN_DIR)
-	@rm *.gcno *.gcda
+	@rm -rf *.gcno *.gcda
 	@echo "$@: Se limpiaron los archivos generados"
 
 # Instala binarios en el host (requiere privilegios de root)
