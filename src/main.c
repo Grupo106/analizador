@@ -157,7 +157,7 @@ static void ayuda() {
            "Este programa compara las clases de trafico intaladas con "
            "los paquetes capturados en un intervalo de tiempo especifico. "
            "Si no se especifica ningun parametro, se analizaran los paquetes "
-           "recibidos desde los segundos especificados en /etc/netcop.conf"
+           "recibidos desde los ultimos %u segundos."
            "\n\n"
            "Parametros:\n"
            "  -h, --help             Muestra esta ayuda.\n"
@@ -168,7 +168,7 @@ static void ayuda() {
                                      "analizaran los paquetes en formato "
                                      "unixtime."
            "\n%s\n"
-           , PROGRAM, COPYLEFT);
+           , PROGRAM, DEFAULT_SEGUNDOS, COPYLEFT);
 }
 
 /*
