@@ -31,47 +31,6 @@ struct s_analizador {
 };
 
 /*
- * struct cidr_clase
- * ---------------------------------------------------------------------------
- * Relaciona una subred con un conjunto de clases que poseen ese rango en
- * alguna de sus subredes.
- *
- * Estructura auxiliar que sirve para las búsquedas binarias de clases de
- * tráfico ya que puede ordenarse por número de subred.
- */
-struct cidr_clase {
-    struct subred cidr; /* subred que agrupa clases */
-    int cantidad; /* cantidad de clases que contiene el array */
-    struct clase *clases; /* array de clases coincidentes */
-};
-
-/*
- * struct puerto_clase
- * ---------------------------------------------------------------------------
- * Relaciona un puerto con un conjunto de clases que poseen ese numero de puerto
- * en alguna de sus puertos.
- *
- * Estructura auxiliar que sirve para las búsquedas binarias de clases de
- * tráfico ya que puede ordenarse por número de puerto.
- */
-struct puerto_clase {
-    int numero;  /* numero de puerto */
-    int cantidad; /* cantidad de clases que contienen el puerto */
-    struct clase *clases; /* array de clases coincidentes */
-};
-
-/*
- * struct coincidencia
- * ---------------------------------------------------------------------------
- * Agrupa las coincidencias de clases de tráfico que coinciden con el paquete
- */
-struct coincidencia {
-    int cantidad; /* cantidad de clases que coinciden*/
-    struct paquete *paquete; /* puntero al paquete en cuestion */
-    struct clase *clases; /* array de punteros coincidentes */
-};
-
-/*
  * FUNCIONES
  * ===========================================================================
  */
@@ -83,111 +42,6 @@ struct coincidencia {
  * clase devuelve 1, caso contrario devuelve cero
  */
 int coincide(const struct clase *clase, const struct paquete *paquete);
-
-/**
- * cidr_buscar_coincidencia(array, paquete, cantidad_clases)
- * ---------------------------------------------------------------------------
- * Busca la clase de trafico que mejor coincida con el paquete según su CIDR.
- * En caso de que ninguna clase de trafico coincida, devuelve NULL.
- */
-struct clase* cidr_buscar_coincidencia(const struct cidr_clase *array,
-        const struct paquete *paquete,
-        int cantidad_clases);
-
-/**
- * puerto_buscar_coincidencia(array, paquete, cantidad_clases)
- * ---------------------------------------------------------------------------
- * Busca la clase de trafico que mejor coincida con el paquete según su número
- * de puerto. En caso de que ninguna clase de trafico coincida, devuelve NULL.
- */
-int puerto_buscar_coincidencia(const struct cidr_clase *array,
-        const struct paquete *paquete,
-        int cantidad_clases,
-        struct coincidencia *coincidencia);
-/**
- * deducir(clases, paquete, cantidad_clases)
- * ---------------------------------------------------------------------------
- * Intenta deducir a que clase de trafico pertenece un paquete. Debe usarse en
- * caso que no exista coincidencia con las clases de trafico existentes.
- *
- * Busca en los puertos conocidos declarados por la IANA, en caso de
- * coincidencia crea una nueva clase de trafico en el array de clases de
- * trafico
- *
- * En caso de no encontrar coincidencia, se asume que pertenece a la clase
- * DEFAULT.
- *
- * Devuelve clase que se aplicó la coincidencia
- */
-struct clase* deducir(const struct clase *clases,
-        const struct paquete *paquete,
-        int *cantidad_clases);
-
-/**
- * subred_comparar(a, b)
- * --------------------------------------------------------------------------
- * Compara 2 subredes y retorna:
- * * -1: *a* es menor que *b*
- * *  0: *a* es igual o contiene a *b*
- * *  1: *a* es mayor que *b*
- */
-int subred_comparar(const void *a, const void *b);
-
-/**
- * puerto_comparar(a, b)
- * --------------------------------------------------------------------------
- * Compara 2 puerto_clase y retorna:
- * * -1: *a* es menor que *b*
- * *  0: *a* es igual o contiene a *b*
- * *  1: *a* es mayor que *b*
- */
-int puerto_comparar(const void *a, const void *b);
-
-/**
- * enum contiene
- * ---------------------------------------------------------------------------
- * Declara posibles retornos de la funcion cidr_contiene
- */
-enum contiene {
-    SIN_COINCIDENCIA, /* No existe coincidencia entre CIDR */
-    A_CONTIENE_B, /* El primer CIDR contiene al segundo */
-    B_CONTIENE_A, /* El segundo CIDR contiene al primero */
-    IGUALES /* Ambas redes sin iguales */
-};
-
-/**
- * contiene_cidr(a, b)
- * --------------------------------------------------------------------------
- * Compara 2 cidr y retorna:
- * * A_CONTIENE_B: *a* es contiene a *b*
- * * B_CONTIENE_A: *b* es contiene a *a*
- * * SIN_COINCIDENCIA: no hay coincidencia entre a y b
- * * IGUALES: Ambas redes son iguales
- */
-enum contiene cidr_contiene(const struct cidr_clase *a ,
-        const struct cidr_clase *b);
-
-/*
- * cidr_insertar(array, clase, cantidad_clases)
- * ---------------------------------------------------------------------------
- * Inserta una clase en el array ordenado. Siempre se respetara el orden de las
- * direcciones de red declaradas en cidr_clase.
- *
- * Devuelve 0 si pudo insertar el elemento en el array, cualquier otro valor
- * en caso de error
- */
-int cidr_insertar(struct cidr_clase *array,
-        const struct clase *clase,
-        int cantidad_clases);
-
-/**
- * puntaje(clase, paquete)
- * ---------------------------------------------------------------------------
- * Compara un paquete con una clase de tráfico y obtiene un puntaje que
- * representa la cantidad y calidad de coincidencias. A mayor puntaje, mayor
- * cantidad de coincidencias.
- */
-int puntaje(const struct clase*, const struct paquete*);
 
 /**
  * imprimir(clases, cantidad)
@@ -203,33 +57,6 @@ int imprimir(const struct s_analizador *analizador);
  *  JSON
  */
 int clases_to_json(FILE* file, const struct s_analizador*);
-
-/**
- * get_clases(**clases, *cfg)
- * ---------------------------------------------------------------------------
- *  Obtiene el array de clases de trafico que se utilizara en el analisis.
- *  Devuelve la cantidad de clases que contiene el array
- *
- *  ### Parametros:
- *    * clases: Puntero a un array donde se almacenaran las clases
- *    * cfg: Puntero a la configuracion del analizador que contiene los
- *           parametros por los cuales se seleccionaran las clases.
- */
-int get_clases(struct s_analizador*);
-
-/**
- * init_clase
- * --------------------------------------------------------------------------
- *  Inicializa una estructura de clase de trafico a valores por defecto
- */
-void init_clase(struct clase *clase);
-
-/**
- * free_clase
- * --------------------------------------------------------------------------
- *  Libera memoria ocupada por una clase de trafico
- */
-void free_clase(struct clase *clase);
 
 /**
  * analizar_paquete(s_analizador, paquete)

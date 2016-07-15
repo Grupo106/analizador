@@ -60,25 +60,32 @@ int main() {
         exit(sqlret);
     }
     /* obtengo clases */
-    if (get_clases(&analizador) != 0) {
+    if (obtener_clases(&analizador) != 0) {
         fprintf(stderr, "Error al obtener las clases de trafico\n");
         exit(EXIT_FAILURE);
     }
     clock_t start = clock();
     /* analizo paquetes */
-    cantidad_paquetes = bd_paquetes(&analizador, analizar_paquete);
+    cantidad_paquetes = obtener_paquetes(&analizador, analizar_paquete);
     bd_desconectar();
     /* imprimo resultado */
     imprimir(&analizador);
     clock_t end = clock();
     /* calculo tiempo de analisis. */
     double tiempo = (end - start) / (double) CLOCKS_PER_SEC;
+
 #ifdef DEBUG
-    printf("Se analizaron %d paquetes en %.2f segundos\n",
-            cantidad_paquetes, tiempo);
+    printf("Se analizaron %d paquetes con %d clases en %.2f segundos\n",
+           cantidad_paquetes,
+           analizador.cant_clases,
+           tiempo);
 #endif
-    syslog(LOG_DEBUG, "Se analizaron %d paquetes en %.2f segundos",
-           cantidad_paquetes, tiempo);
+
+    syslog(LOG_DEBUG, 
+           "Se analizaron %d paquetes con %d clases en %.2f segundos",
+           cantidad_paquetes,
+           analizador.cant_clases,
+           tiempo);
     terminar(EXIT_SUCCESS);
     return EXIT_SUCCESS;
 }

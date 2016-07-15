@@ -50,14 +50,14 @@ void bd_commit() {
 }
 
 /**
- * get_paquetes(**paquetes, *cfg)
+ * obtener_paquetes
  * -------------------------------------------------------------------------
- * Obtiene los paquetes capturados segun configuracion pasada por parametro.
- * Devuelve la cantidad de paquetes en el array de paquetes
+ *  Obtiene los paquetes capturados segun configuracion pasada por parametro.
+ *  Devuelve la cantidad de paquetes en el array de paquetes
  */
-int bd_paquetes(struct s_analizador* analizador,
-                int (*callback)(const struct s_analizador*,
-                                const struct paquete*))
+int obtener_paquetes(struct s_analizador* analizador,
+                     int (*callback)(const struct s_analizador*,
+                                     const struct paquete*))
 {
     struct paquete paquete;
     int i;
@@ -88,7 +88,7 @@ int bd_paquetes(struct s_analizador* analizador,
     EXEC SQL EXECUTE count1 INTO :cantidad;
 
     /* obtengo la memoria necesaria para cargar todas las filas e inicializo la
-     * seccion de memoria con ceros
+     * seccion de memoria con ceros.
      */
     paquetes = malloc(sizeof(t_paquete) * cantidad);
     if (paquetes == NULL) {
@@ -103,8 +103,8 @@ int bd_paquetes(struct s_analizador* analizador,
     /* obtengo los paquetes */
     EXEC SQL EXECUTE stmt1 INTO :paquetes;
 
+    #pragma omp parallel for private(i, paquete)
     for(i = 0; i < cantidad; i++) {
-        paquete.direccion = -1;
         paquete.origen.s_addr = htonl((paquetes + i)->ip_origen);
         paquete.destino.s_addr = htonl((paquetes + i)->ip_destino);
         paquete.puerto_origen = (paquetes + i)->puerto_origen;
@@ -119,6 +119,66 @@ int bd_paquetes(struct s_analizador* analizador,
     EXEC SQL COMMIT;
     free(paquetes);
     return cantidad;
+}
+
+/**
+ * obtener_clases
+ * ---------------------------------------------------------------------------
+ *  Obtiene el array de clases de trafico que se utilizara en el analisis.
+ *  Devuelve la cantidad de clases que contiene el array
+ */
+int obtener_clases(struct s_analizador *analizador)
+{
+    struct clase *c;
+    #define REPETICIONES 2000
+    #define CANT_PAQUETES 3 * REPETICIONES
+    analizador->cant_clases = CANT_PAQUETES;
+    c = analizador->clases = malloc(CANT_PAQUETES * sizeof(struct clase));
+    /* La primer clase es la default */
+    init_clase(c);
+    strncpy(c->nombre, "Default", LONG_NOMBRE);
+    strncpy(c->descripcion, "Clase por defecto", LONG_DESCRIPCION);
+    /* XXX: Mock clases */
+    for(int i = 0; i < REPETICIONES - 1; i++) {
+        /* SSH */
+        c++;
+        init_clase(c);
+        strncpy(c->nombre, "SSH", LONG_NOMBRE);
+        strncpy(c->descripcion, "Secure shell - Administracion remota",
+                LONG_DESCRIPCION);
+        c->cant_puertos_a = 1;
+        c->puertos_a = malloc(sizeof(u_int16_t));
+        *(c->puertos_a) = 22;
+        /* HTTP */
+        c++;
+        init_clase(c);
+        strncpy(c->nombre, "HTTP", LONG_NOMBRE);
+        strncpy(c->descripcion, "Navegacion web", LONG_DESCRIPCION);
+        c->cant_puertos_a = 1;
+        c->puertos_a = malloc(sizeof(u_int16_t));
+        *(c->puertos_a) = 80;
+        /* HTTPS */
+        c++;
+        init_clase(c);
+        strncpy(c->nombre, "HTTPS", LONG_NOMBRE);
+        strncpy(c->descripcion, "Navegacion web segura", LONG_DESCRIPCION);
+        c->cant_puertos_a = 1;
+        c->puertos_a = malloc(sizeof(u_int16_t));
+        *(c->puertos_a) = 443;
+    }
+    return 0;
+}
+
+/**
+ * free_clase
+ * --------------------------------------------------------------------------
+ *  Libera memoria ocupada por una clase de trafico
+ */
+void free_clase(struct clase *clase) {
+    free(clase->subredes_a);
+    free(clase->subredes_b);
+    free(clase->puertos_a);
+    free(clase->puertos_b);
 }
 
 /**

@@ -3,57 +3,6 @@
 #include <string.h>
 #include "analizador.h"
 
-/*
- * contiene_cidr(a, b)
- * --------------------------------------------------------------------------
- * Compara 2 cidr y retorna:
- * * A_CONTIENE_B: *a* es contiene a *b*
- * * B_CONTIENE_A: *b* es contiene a *a*
- * * SIN_COINCIDENCIA: no hay coincidencia entre a y b
- * * IGUALES: a y b son iguales
- */
-enum contiene cidr_contiene(const struct cidr_clase *a,
-                            const struct cidr_clase *b)
-{
-    /* verifico si son iguales */
-    if (a->cidr.red.s_addr == b->cidr.red.s_addr &&
-            a->cidr.mascara == b->cidr.mascara)
-        return IGUALES;
-    /* verifico si la ip de red de *b* esta en el rango de *a* */
-    else if (IN_NET(b->cidr.red.s_addr, a->cidr.red.s_addr, a->cidr.mascara))
-        return A_CONTIENE_B;
-    /* verifico si la ip de red de *a* esta en el rango de *b* */
-    else if (IN_NET(a->cidr.red.s_addr, b->cidr.red.s_addr, b->cidr.mascara))
-        return B_CONTIENE_A;
-    return SIN_COINCIDENCIA;
-}
-
-/**
- * subred_comparar(a, b)
- * --------------------------------------------------------------------------
- * Compara 2 cidr_clase y retorna:
- * * -1: *a* es menor que *b*
- * *  0: *a* es igual o contiene a *b*
- * *  1: *a* es mayor que *b*
- */
-int subred_comparar(const void *x, const void *y)
-{
-    const struct subred *a, *b;
-    a = (const struct subred*) x;
-    b = (const struct subred*) y;
-    /* verifico si son iguales */
-    if (a->red.s_addr == b->red.s_addr &&
-            a->mascara == b->mascara)
-        return 0;
-    /* si se contienen entre ellas, asumo que son iguales */
-    else if (IN_NET(b->red.s_addr, a->red.s_addr, a->mascara))
-        return 0;
-    else if (IN_NET(a->red.s_addr, b->red.s_addr, b->mascara))
-        return 0;
-    /* solamente las comparo si las redes son disjuntas */
-    return (a->red.s_addr < b->red.s_addr) ? -1 : 1;
-}
-
 /**
  * coincide(clase, paquete)
  * ---------------------------------------------------------------------------
@@ -176,102 +125,40 @@ int clases_to_json(FILE* file, const struct s_analizador *analizador)
 }
 
 /**
- * get_clases(**clases, *cfg)
- * ---------------------------------------------------------------------------
- *  Obtiene el array de clases de trafico que se utilizara en el analisis.
- *  Devuelve la cantidad de clases que contiene el array
+ * analizar_paquete(s_analizador, paquete)
+ * --------------------------------------------------------------------------
+ *  Compara un paquete con las clases de trafico instaladas. En caso que no
+ *  coincida con ninuna, se agrega a la clase por defecto.
  *
- *  ### Parametros:
- *    * clases: Puntero a un array donde se almacenaran las clases
- *    * cfg: Puntero a la configuracion del analizador que contiene los
- *           parametros por los cuales se seleccionaran las clases.
+ *  Devuelve 1 en caso que haya coincidencia con alguna clase de trafico, 0 en
+ *  caso de que se haya agregado el paquete a la clase por defecto.
  */
-int get_clases(struct s_analizador *analizador)
-{
-    struct clase *c;
-    analizador->cant_clases = 4;
-    c = analizador->clases = malloc(4 * sizeof(struct clase));
-    /* La primer clase es la default */
-    init_clase(c);
-    strncpy(c->nombre, "Default", LONG_NOMBRE);
-    strncpy(c->descripcion, "Clase por defecto", LONG_DESCRIPCION);
-    /* XXX: Mock clases */
-    /* SSH */
-    c++;
-    init_clase(c);
-    strncpy(c->nombre, "SSH", LONG_NOMBRE);
-    strncpy(c->descripcion, "Secure shell - Administracion remota",
-            LONG_DESCRIPCION);
-    c->cant_puertos_a = 1;
-    c->puertos_a = malloc(sizeof(u_int16_t));
-    *(c->puertos_a) = 22;
-    /* HTTP */
-    c++;
-    init_clase(c);
-    strncpy(c->nombre, "HTTP", LONG_NOMBRE);
-    strncpy(c->descripcion, "Navegacion web", LONG_DESCRIPCION);
-    c->cant_puertos_a = 1;
-    c->puertos_a = malloc(sizeof(u_int16_t));
-    *(c->puertos_a) = 80;
-    /* HTTPS */
-    c++;
-    init_clase(c);
-    strncpy(c->nombre, "HTTPS", LONG_NOMBRE);
-    strncpy(c->descripcion, "Navegacion web segura", LONG_DESCRIPCION);
-    c->cant_puertos_a = 1;
-    c->puertos_a = malloc(sizeof(u_int16_t));
-    *(c->puertos_a) = 443;
-    return 0;
-}
-
-/**
- * init_clase
- * --------------------------------------------------------------------------
- *  Inicializa una estructura de clase de trafico a valores por defecto
- */
-void init_clase(struct clase *clase) {
-    memset(clase, 0, sizeof(struct clase));
-}
-
-/**
- * free_clase
- * --------------------------------------------------------------------------
- *  Libera memoria ocupada por una clase de trafico
- */
-void free_clase(struct clase *clase) {
-    free(clase->subredes_a);
-    free(clase->subredes_b);
-    free(clase->puertos_a);
-    free(clase->puertos_b);
-}
-
 int analizar_paquete(const struct s_analizador* analizador,
-                     const struct paquete* paquete)
+        const struct paquete* paquete)
 {
     int coincidencias = 0; /* flag para saber si el paquete tuvo alguna
                             * coincidencia*/
-    int c = 0; /* almacena el resultado de la comparacion con la clase */
+    int cmp = 0; /* almacena el resultado de la comparacion con la clase */
     int i = 0; /* iterador de clases */
-    struct clase *clase; /* puntero a clase para iterar. Sirve como alias */
 
     /* Por defecto, la primer clase es la clase por default, por lo tanto
      * empiezo a comparar con la clase 1 */
     for (i = 1; i < analizador->cant_clases; i++) {
-        clase = (analizador->clases + i); /* apunto a la clase */
-        c = coincide(clase, paquete); /* la comparo con el paquete */
-        coincidencias |= c; /* actualizo flag de coincidencia mediante OR */
-        /* si hay coincidencia */
-        if (c) {
-            if (paquete->direccion == ENTRANTE)
+        cmp = coincide(analizador->clases + i, paquete);
+        coincidencias |= cmp;
+        if (cmp) {
+            if (paquete->direccion == ENTRANTE) {
                 #pragma omp atomic
-                clase->bytes_bajada += paquete->bytes;
-            else
+                (analizador->clases + i)->bytes_bajada += paquete->bytes;
+            } /* paquete entrante */
+            else {
                 #pragma omp atomic
-                clase->bytes_subida += paquete->bytes;
+                (analizador->clases + i)->bytes_subida += paquete->bytes;
+            } /* paquete saliente*/
         }
     }
     /* si no hubo coincidencia con ninguna clase lo agrego a la clase default*/
-    if(coincidencias == 0) {
+    if(!coincidencias) {
         if(paquete->direccion == ENTRANTE)
             #pragma omp atomic
             analizador->clases->bytes_bajada += paquete->bytes;
