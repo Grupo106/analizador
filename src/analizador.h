@@ -11,6 +11,7 @@
 #define ANALIZADOR_H
 
 #include <stdio.h>
+#include <time.h>
 #include "paquete.h"
 #include "clase_trafico.h"
 
@@ -27,9 +28,9 @@
  */
 struct s_analizador {
     /* valor menor del intervalo de tiempo de paquetes a analizar. */
-    unsigned int tiempo_inicio;
+    time_t tiempo_inicio;
     /* valor mayor del intervalo de tiempo de paquetes a analizar. */
-    unsigned int tiempo_fin;
+    time_t tiempo_fin;
     /* cantidad de clases de clases de trafico. */
     int cant_clases;
     /* array de clases de trafico. */

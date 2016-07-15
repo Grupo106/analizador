@@ -1,6 +1,7 @@
 /* vim: set ft=c: */
 #include <assert.h>
 #include <syslog.h>
+#include <time.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
 
@@ -86,11 +87,18 @@ int obtener_paquetes(struct s_analizador* analizador,
         } t_paquete;
         t_paquete *paquetes;
         int cantidad;
-        int t_min, t_max; /* intervalo de analisis */
+        long int t_min, t_max; /* intervalo de analisis */
     EXEC SQL END DECLARE SECTION;
 
     t_min = analizador->tiempo_inicio;
     t_max = analizador->tiempo_fin;
+    syslog(LOG_DEBUG,
+           "Se analizaran paquetes capturados desde %s",
+           ctime(&(analizador->tiempo_inicio)));
+    syslog(LOG_DEBUG,
+           "Se analizaran paquetes capturados hasta %s",
+           ctime(&(analizador->tiempo_fin)));
+
 
     /* preparo consultas */
     EXEC SQL PREPARE stmt1 FROM :stmt;

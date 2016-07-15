@@ -216,7 +216,6 @@ static void argumentos(int argc, const char* argv[], struct s_analizador *cfg)
         cfg->tiempo_inicio = time(NULL) - aux;
     } else if (argc == 3) {
         /* intervalo */
-        /* segundos */
         if(sscanf(argv[1], "%u", &(aux)) != 1) {
             fprintf(stderr, "%s: Parámetro desconocido\n", argv[1]);
             ayuda();
