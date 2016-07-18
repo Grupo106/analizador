@@ -104,20 +104,24 @@ int clases_to_json(FILE* file, const struct s_analizador *analizador)
     /* inicio array */
     fprintf(file, "[\n");
     /* imprimo clases */
-    for(i = 0; i < cantidad; i++) {
-        fprintf(file, "  {\n"
-                      "    \"id\": %d,\n"
-                      "    \"nombre\": \"%s\",\n"
-                      "    \"descripcion\": \"%s\",\n"
-                      "    \"subida\": %d,\n"
-                      "    \"bajada\": %d\n"
-                      "  }%c\n",
-                      (clases + i)->id,
-                      (clases + i)->nombre,
-                      (clases + i)->descripcion,
-                      (clases + i)->bytes_subida,
-                      (clases + i)->bytes_bajada,
-                      i + 1 < cantidad ? ',' : ' ');
+    for (i = 0; i < cantidad; i++) {
+        /* evito imprimir clases sin bytes */
+        if ((clases + i)->bytes_subida || (clases + i)->bytes_bajada) {
+            fprintf(file,
+                    "  {\n"
+                    "    \"id\": %d,\n"
+                    "    \"nombre\": \"%s\",\n"
+                    "    \"descripcion\": \"%s\",\n"
+                    "    \"subida\": %d,\n"
+                    "    \"bajada\": %d\n"
+                    "  }%c\n",
+                    (clases + i)->id,
+                    (clases + i)->nombre,
+                    (clases + i)->descripcion,
+                    (clases + i)->bytes_subida,
+                    (clases + i)->bytes_bajada,
+                    i + 1 < cantidad ? ',' : ' ');
+        }
     }
     /* fin array */
     fprintf(file, "]\n");

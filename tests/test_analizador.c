@@ -582,7 +582,7 @@ void test_coincide_protocolo() {
  */
 void test_imprimir() {
     struct s_analizador analizador;
-    struct clase clases[3];
+    struct clase clases[4];
     /* creo clases de trafico */
     clases[0].id = 0;
     strncpy(clases[0].nombre, "SSH", LONG_NOMBRE);
@@ -602,8 +602,15 @@ void test_imprimir() {
     clases[2].bytes_subida = 22111;
     clases[2].bytes_bajada = 53;
 
+    clases[3].id = 3;
+    strncpy(clases[3].nombre, "No se debe mostrar", LONG_NOMBRE);
+    strncpy(clases[3].descripcion, "Clases con 0 bytes no se muestran",
+            LONG_DESCRIPCION);
+    clases[3].bytes_subida = 0;
+    clases[3].bytes_bajada = 0;
+
     analizador.clases = clases;
-    analizador.cant_clases = 3;
+    analizador.cant_clases = 4;
 
     imprimir(&analizador);
 }
