@@ -151,50 +151,80 @@ int obtener_paquetes(struct s_analizador* analizador,
  */
 int obtener_clases(struct s_analizador *analizador)
 {
-    struct clase *c;
-    #define REPETICIONES 1000
-    #define CANT_PAQUETES 3 * REPETICIONES
-    analizador->cant_clases = CANT_PAQUETES;
-    c = analizador->clases = malloc(CANT_PAQUETES * sizeof(struct clase));
-    /* La primer clase es la default */
-    init_clase(c);
-    strncpy(c->nombre, "Default", LONG_NOMBRE);
-    strncpy(c->descripcion, "Clase por defecto", LONG_DESCRIPCION);
-    /* XXX: Mock clases */
-    for(int i = 0; i < REPETICIONES; i++) {
-        /* SSH */
-        c++;
-        init_clase(c);
-        strncpy(c->nombre, "SSH", LONG_NOMBRE);
-        strncpy(c->descripcion, "Secure shell - Administracion remota",
-                LONG_DESCRIPCION);
-        c->id = i + 0;
-        c->cant_puertos_a = 1;
-        c->puertos_a = malloc(sizeof(struct puerto));
-        c->puertos_a->numero = 22;
-        c->puertos_a->protocolo = IPPROTO_TCP;
-        /* HTTP */
-        c++;
-        init_clase(c);
-        strncpy(c->nombre, "HTTP", LONG_NOMBRE);
-        strncpy(c->descripcion, "Navegacion web", LONG_DESCRIPCION);
-        c->id = i + 1;
-        c->cant_puertos_a = 1;
-        c->puertos_a = malloc(sizeof(struct puerto));
-        c->puertos_a->numero = 80;
-        c->puertos_a->protocolo = IPPROTO_TCP;
-        /* HTTPS */
-        c++;
-        init_clase(c);
-        strncpy(c->nombre, "HTTPS", LONG_NOMBRE);
-        strncpy(c->descripcion, "Navegacion web segura", LONG_DESCRIPCION);
-        c->id = i + 2;
-        c->cant_puertos_a = 1;
-        c->puertos_a = malloc(sizeof(struct puerto));
-        c->puertos_a->numero = 443;
-        c->puertos_a->protocolo = IPPROTO_TCP;
+    struct clase *clase;
+    int i;
+    EXEC SQL BEGIN DECLARE SECTION;
+        const char *stmt = "SELECT id_clase, nombre, descripcion "
+                           "FROM clase_trafico";
+        const char *count = "SELECT count(1) "
+                            "FROM clase_trafico";
+        typedef struct {
+            int id_clase;
+            char nombre[LONG_NOMBRE];
+            char descripcion[LONG_DESCRIPCION];
+        } t_clase;
+        t_clase *clases;
+        int cantidad;
+    EXEC SQL END DECLARE SECTION;
+
+    /* preparo consultas */
+    EXEC SQL PREPARE stmt1 FROM :stmt;
+    EXEC SQL PREPARE count1 FROM :count;
+
+    /* obtengo la cantidad de filas necesarias */
+    EXEC SQL EXECUTE count1 INTO :cantidad;
+
+    /* obtengo la memoria necesaria para cargar todas las filas e inicializo la
+     * seccion de memoria con ceros.
+     */
+    clases = malloc(sizeof(t_clase) * cantidad);
+    if (clases == NULL) {
+        syslog(LOG_ERR,
+               "No hay memoria disponible para cargar %d clases",
+               cantidad);
+        exit(EXIT_FAILURE);
     }
-    return CANT_PAQUETES;
+    memset(clases, 0, sizeof(t_clase) * cantidad);
+
+    /* obtengo las clases */
+    EXEC SQL EXECUTE stmt1 INTO :clases;
+
+    /* creo array de clases de trafico */
+    analizador->cant_clases = cantidad + 1;
+    analizador->clases = malloc(sizeof(struct clase) * (cantidad + 1));
+    if (analizador->clases == NULL) {
+        syslog(LOG_ERR,
+               "No hay memoria disponible para cargar %d clases de trafico",
+               cantidad);
+        exit(EXIT_FAILURE);
+    }
+
+    /* la primera clase es por defecto */
+    init_clase(analizador->clases);
+    strncpy(analizador->clases->nombre,
+            "Default",
+            LONG_NOMBRE);
+    strncpy(analizador->clases->descripcion,
+            "Clase por defecto para paquetes que no coinciden con ninguna otra"
+            " clase de trafico instalada",
+            LONG_DESCRIPCION);
+    
+    /* cargo clases de trafico instaladas */
+    for(i = 0; i < cantidad; i++) {
+        clase = analizador->clases + i + 1; /* sumo uno por clase por defecto */
+        init_clase(clase);
+        clase->id = (clases + i)->id_clase;
+        strncpy(clase->nombre, (clases + i)->nombre, LONG_NOMBRE);
+        strncpy(clase->descripcion, (clases + i)->descripcion,
+                LONG_DESCRIPCION);
+        obtener_subredes(clase);
+        obtener_puertos(clase);
+    }
+
+    /* libero recursos */
+    EXEC SQL COMMIT;
+    free(clases);
+    return cantidad;
 }
 
 /**
@@ -207,6 +237,157 @@ void free_clase(struct clase *clase) {
     free(clase->subredes_b);
     free(clase->puertos_a);
     free(clase->puertos_b);
+}
+
+/**
+ * obtener_subredes(*clase)
+ * ---------------------------------------------------------------------------
+ *  Obtiene el array de subredes que componen la clase de trafico.
+ *  Devuelve la cantidad de subredes que contiene el array
+ *
+ *  Carga tanto grupo A como grupo B.
+ *
+ *  TODO: Falta cargar grupo B
+ */
+int obtener_subredes(struct clase* clase)
+{
+    int i;
+    EXEC SQL BEGIN DECLARE SECTION;
+        const char *qcidr = "SELECT direccion, prefijo "
+                           "FROM v_clase_cidr "
+                           "WHERE id_clase = ?";
+        const char *qcount = "SELECT count(1) "
+                            "FROM v_clase_cidr " 
+                            "WHERE id_clase = ?";
+        typedef struct {
+            char direccion[INET_ADDRSTRLEN];
+            int prefijo;
+        } t_cidr;
+        t_cidr *cidr;
+        int cantidad;
+        int id_clase;
+    EXEC SQL END DECLARE SECTION;
+
+    /* preparo consultas */
+    EXEC SQL PREPARE sqlcidr FROM :qcidr;
+    EXEC SQL PREPARE sqlcount FROM :qcount;
+
+    /* obtengo la cantidad de filas necesarias */
+    id_clase = clase->id;
+    EXEC SQL EXECUTE sqlcount INTO :cantidad USING :id_clase;
+
+    /* obtengo la memoria necesaria para cargar todas las filas */
+    cidr = malloc(sizeof(t_cidr) * cantidad);
+    if (cidr == NULL) {
+        syslog(LOG_ERR,
+               "No hay memoria disponible para cargar %d cidr",
+               cantidad);
+        exit(EXIT_FAILURE);
+    }
+    /* inicializo la seccion de memoria con ceros. */
+    memset(cidr, 0, sizeof(t_cidr) * cantidad);
+
+    /* obtengo las subredes */
+    EXEC SQL EXECUTE sqlcidr INTO :cidr USING :id_clase;
+
+    /* creo array de subredes */
+    clase->cant_subredes_a = cantidad;
+    clase->subredes_a = malloc(sizeof(struct subred) * cantidad);
+    if (clase->subredes_a == NULL) {
+        syslog(LOG_ERR,
+               "No hay memoria disponible para cargar %d subredes",
+               cantidad);
+        exit(EXIT_FAILURE);
+    }
+
+    /* cargo subredes */
+    for(i = 0; i < cantidad; i++) {
+        /* obtengo direccion de red en formato binario */
+        inet_pton(AF_INET,
+                  (cidr+i)->direccion, 
+                  &((clase->subredes_a + i)->red));
+        /* obtengo mascara de subred en formato binario a traves de su prefijo.
+         */
+        (clase->subredes_a + i)->mascara = GET_MASCARA((cidr + i)->prefijo);
+    }
+
+    /* libero recursos */
+    EXEC SQL COMMIT;
+    free(cidr);
+    return cantidad;
+}
+
+/**
+ * obtener_puertos(*clase)
+ * ---------------------------------------------------------------------------
+ *  Obtiene el array de puertos que componen la clase de trafico.
+ *  Devuelve la cantidad de puertos que contiene el array
+ *
+ *  Carga tanto grupo A como grupo B.
+ *
+ *  TODO: Falta cargar grupo B
+ */
+int obtener_puertos(struct clase* clase)
+{
+    int i;
+    EXEC SQL BEGIN DECLARE SECTION;
+        const char *query = "SELECT numero, protocolo "
+                            "FROM v_clase_puerto "
+                            "WHERE id_clase = ?";
+        const char *count = "SELECT count(1) "
+                            "FROM v_clase_puerto " 
+                            "WHERE id_clase = ?";
+        typedef struct {
+            int numero;
+            int protocolo;
+        } t_puerto;
+        t_puerto *puertos;
+        int cantidad;
+        int id_clase;
+    EXEC SQL END DECLARE SECTION;
+
+    /* preparo consultas */
+    EXEC SQL PREPARE sqlquery FROM :query;
+    EXEC SQL PREPARE sqlcount FROM :count;
+
+    /* obtengo la cantidad de filas necesarias */
+    id_clase = clase->id;
+    EXEC SQL EXECUTE sqlcount INTO :cantidad USING :id_clase;
+
+    /* obtengo la memoria necesaria para cargar todas las filas */
+    puertos = malloc(sizeof(t_puerto) * cantidad);
+    if (puertos == NULL) {
+        syslog(LOG_ERR,
+               "No hay memoria disponible para cargar %d puertos",
+               cantidad);
+        exit(EXIT_FAILURE);
+    }
+    /* inicializo la seccion de memoria con ceros. */
+    memset(puertos, 0, sizeof(t_puerto) * cantidad);
+
+    /* obtengo los puertos */
+    EXEC SQL EXECUTE sqlquery INTO :puertos USING :id_clase;
+
+    /* creo array de puertos */
+    clase->cant_puertos_a = cantidad;
+    clase->puertos_a = malloc(sizeof(struct puerto) * cantidad);
+    if (clase->puertos_a == NULL) {
+        syslog(LOG_CRIT,
+               "No hay memoria disponible para cargar %d puertos",
+               cantidad);
+        exit(EXIT_FAILURE);
+    }
+
+    /* cargo puertos */
+    for(i = 0; i < cantidad; i++) {
+        (clase->puertos_a + i)->numero = (puertos + i)->numero;
+        (clase->puertos_a + i)->protocolo = (puertos + i)->protocolo;
+    }
+
+    /* libero recursos */
+    EXEC SQL COMMIT;
+    free(puertos);
+    return cantidad;
 }
 
 /**

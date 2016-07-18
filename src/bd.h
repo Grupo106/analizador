@@ -63,4 +63,24 @@ int obtener_clases(struct s_analizador*);
  */
 void free_clase(struct clase *clase);
 
+/**
+ * obtener_subredes(*clase)
+ * ---------------------------------------------------------------------------
+ *  Obtiene el array de subredes que componen la clase de trafico.
+ *  Devuelve la cantidad de subredes que contiene el array
+ *
+ *  Carga tanto grupo A como grupo B.
+ */
+int obtener_subredes(struct clase*);
+
+/**
+ * obtener_puertos(*clase)
+ * ---------------------------------------------------------------------------
+ *  Obtiene el array de puertos que componen la clase de trafico.
+ *  Devuelve la cantidad de puertos que contiene el array
+ *
+ *  Carga tanto grupo A como grupo B.
+ */
+int obtener_puertos(struct clase*);
+
 #endif /* DB_H */
