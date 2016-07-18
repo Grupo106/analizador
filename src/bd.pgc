@@ -170,8 +170,9 @@ int obtener_clases(struct s_analizador *analizador)
                 LONG_DESCRIPCION);
         c->id = i + 0;
         c->cant_puertos_a = 1;
-        c->puertos_a = malloc(sizeof(u_int16_t));
-        *(c->puertos_a) = 22;
+        c->puertos_a = malloc(sizeof(struct puerto));
+        c->puertos_a->numero = 22;
+        c->puertos_a->protocolo = IPPROTO_TCP;
         /* HTTP */
         c++;
         init_clase(c);
@@ -179,8 +180,9 @@ int obtener_clases(struct s_analizador *analizador)
         strncpy(c->descripcion, "Navegacion web", LONG_DESCRIPCION);
         c->id = i + 1;
         c->cant_puertos_a = 1;
-        c->puertos_a = malloc(sizeof(u_int16_t));
-        *(c->puertos_a) = 80;
+        c->puertos_a = malloc(sizeof(struct puerto));
+        c->puertos_a->numero = 80;
+        c->puertos_a->protocolo = IPPROTO_TCP;
         /* HTTPS */
         c++;
         init_clase(c);
@@ -188,8 +190,9 @@ int obtener_clases(struct s_analizador *analizador)
         strncpy(c->descripcion, "Navegacion web segura", LONG_DESCRIPCION);
         c->id = i + 2;
         c->cant_puertos_a = 1;
-        c->puertos_a = malloc(sizeof(u_int16_t));
-        *(c->puertos_a) = 443;
+        c->puertos_a = malloc(sizeof(struct puerto));
+        c->puertos_a->numero = 443;
+        c->puertos_a->protocolo = IPPROTO_TCP;
     }
     return CANT_PAQUETES;
 }

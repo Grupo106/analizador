@@ -156,11 +156,9 @@ void test_coincide_muchas_subredes() {
     struct clase a, b;
     struct paquete x;
     /* creo clases de trafico */
+    init_clase(&a);
+    init_clase(&b);
     a.cant_subredes_a = 3;
-    a.cant_subredes_b = 0;
-    a.cant_puertos_a = 0;
-    a.cant_puertos_b = 0;
-    a.protocolo = 0;
     a.subredes_a = malloc(3 * sizeof(struct subred));
     inet_aton("192.168.0.0", &(a.subredes_a->red));
     inet_aton("172.17.0.0", &((a.subredes_a + 1)->red));
@@ -170,10 +168,6 @@ void test_coincide_muchas_subredes() {
     (a.subredes_a + 2)->mascara = GET_MASCARA(24);
 
     b.cant_subredes_a = 2;
-    b.cant_subredes_b = 0;
-    b.cant_puertos_a = 0;
-    b.cant_puertos_b = 0;
-    b.protocolo = 0;
     b.subredes_a = malloc(2 * sizeof(struct subred));
     inet_aton("10.0.0.0", &(b.subredes_a->red));
     inet_aton("177.200.1.0", &((b.subredes_a + 1)->red));
@@ -212,11 +206,10 @@ void test_coincide_subred_origen_destino() {
     struct clase a, b;
     struct paquete x;
     /* creo clases de trafico */
+    init_clase(&a);
+    init_clase(&b);
     a.cant_subredes_a = 1;
     a.cant_subredes_b = 1;
-    a.cant_puertos_a = 0;
-    a.cant_puertos_b = 0;
-    a.protocolo = 0;
     a.subredes_a = malloc(sizeof(struct subred)); /* a */
     inet_aton("192.168.0.0", &(a.subredes_a->red));
     a.subredes_a->mascara = GET_MASCARA(24);
@@ -226,9 +219,6 @@ void test_coincide_subred_origen_destino() {
 
     b.cant_subredes_a = 1;
     b.cant_subredes_b = 1;
-    b.cant_puertos_a = 0;
-    b.cant_puertos_b = 0;
-    b.protocolo = 0;
     b.subredes_a = malloc(sizeof(struct subred)); /* a */
     inet_aton("192.168.1.0", &(b.subredes_a->red));
     b.subredes_a->mascara = GET_MASCARA(24);
@@ -259,11 +249,8 @@ void test_coincide_stress(int cantidad_clases) {
     struct paquete x;
     int i;
     /* creo clases de trafico */
+    init_clase(&a);
     a.cant_subredes_a = 1;
-    a.cant_subredes_b = 0;
-    a.cant_puertos_a = 0;
-    a.cant_puertos_b = 0;
-    a.protocolo = 0;
     a.subredes_a = malloc(sizeof(struct subred)); /* a */
     inet_aton("192.168.0.0", &(a.subredes_a->red));
     a.subredes_a->mascara = GET_MASCARA(24);
@@ -304,41 +291,38 @@ void test_coincide_puerto() {
     struct clase a, b, c;
     struct paquete x;
     /* creo clases de trafico */
-    a.cant_subredes_a = 0;
-    a.cant_subredes_b = 0;
+    init_clase(&a);
+    init_clase(&b);
+    init_clase(&c);
     a.cant_puertos_a = 1;
-    a.cant_puertos_b = 0;
-    a.protocolo = 0;
-    a.puertos_a = malloc(sizeof(u_int16_t));
-    *(a.puertos_a) = 22;
+    a.puertos_a = malloc(sizeof(struct puerto));
+    a.puertos_a->numero = 22;
+    a.puertos_a->protocolo = IPPROTO_TCP;
 
     b.cant_subredes_a = 1;
-    b.cant_subredes_b = 0;
     b.cant_puertos_a = 1;
-    b.cant_puertos_b = 0;
-    b.protocolo = 0;
     b.subredes_a = malloc(sizeof(struct subred));
     inet_aton("10.0.0.0", &(b.subredes_a->red));
     b.subredes_a->mascara = GET_MASCARA(8);
-    b.puertos_a = malloc(sizeof(u_int16_t));
-    *(b.puertos_a) = 80;
+    b.puertos_a = malloc(sizeof(struct puerto));
+    b.puertos_a->numero = 80;
+    b.puertos_a->protocolo = IPPROTO_TCP;
 
     c.cant_subredes_a = 1;
-    c.cant_subredes_b = 0;
     c.cant_puertos_a = 1;
-    c.cant_puertos_b = 0;
-    c.protocolo = 0;
     c.subredes_a = malloc(sizeof(struct subred));
     inet_aton("10.0.0.0", &(c.subredes_a->red));
     c.subredes_a->mascara = GET_MASCARA(8);
-    c.puertos_a = malloc(sizeof(u_int16_t));
-    *(c.puertos_a) = 22;
+    c.puertos_a = malloc(sizeof(struct puerto));
+    c.puertos_a->numero = 22;
+    c.puertos_a->protocolo = IPPROTO_TCP;
 
     /* creo paquete */
     inet_aton("192.168.122.177", &(x.origen));
     inet_aton("200.150.180.210", &(x.destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 22;
+    x.protocolo = IPPROTO_TCP;
 
     assert(coincide(&a, &x) == 1);
     assert(coincide(&b, &x) == 0);
@@ -374,42 +358,43 @@ void test_coincide_muchos_puertos() {
     struct clase a, b, c;
     struct paquete x;
     /* creo clases de trafico */
-    a.cant_subredes_a = 0;
-    a.cant_subredes_b = 0;
+    init_clase(&a);
+    init_clase(&b);
+    init_clase(&c);
+
     a.cant_puertos_a = 3;
-    a.cant_puertos_b = 0;
-    a.protocolo = 0;
-    a.puertos_a = malloc(3 * sizeof(u_int16_t));
-    *(a.puertos_a) = 22;
-    *(a.puertos_a + 1) = 80;
-    *(a.puertos_a + 2) = 443;
+    a.puertos_a = malloc(3 * sizeof(struct puerto));
+    (a.puertos_a)->numero = 22;
+    (a.puertos_a)->protocolo = 0;
+    (a.puertos_a + 1)->numero = 80;
+    (a.puertos_a + 1)->protocolo = 0;
+    (a.puertos_a + 2)->numero = 443;
+    (a.puertos_a + 2)->protocolo = 0;
 
     b.cant_subredes_a = 1;
-    b.cant_subredes_b = 0;
     b.cant_puertos_a = 2;
-    b.cant_puertos_b = 0;
-    b.protocolo = 0;
     b.subredes_a = malloc(sizeof(struct subred));
     inet_aton("10.0.0.0", &(b.subredes_a->red));
     b.subredes_a->mascara = GET_MASCARA(8);
-    b.puertos_a = malloc(2 * sizeof(u_int16_t));
-    *(b.puertos_a) = 80;
-    *(b.puertos_a + 1) = 443;
+    b.puertos_a = malloc(2 * sizeof(struct puerto));
+    (b.puertos_a)->numero = 80;
+    (b.puertos_a)->protocolo = IPPROTO_TCP;
+    (b.puertos_a + 1)->numero = 443;
+    (b.puertos_a + 1)->protocolo = IPPROTO_TCP;
 
-    c.cant_subredes_a = 0;
-    c.cant_subredes_b = 0;
     c.cant_puertos_a = 2;
-    c.cant_puertos_b = 0;
-    c.protocolo = 0;
-    c.puertos_a = malloc(2 * sizeof(u_int16_t));
-    *(c.puertos_a) = 22;
-    *(c.puertos_a + 1) = 80;
+    c.puertos_a = malloc(2 * sizeof(struct puerto));
+    (c.puertos_a)->numero = 22;
+    (c.puertos_a)->protocolo = IPPROTO_TCP;
+    (c.puertos_a + 1)->numero = 80;
+    (c.puertos_a + 1)->protocolo = IPPROTO_TCP;
 
     /* creo paquete */
     inet_aton("192.168.122.177", &(x.origen));
     inet_aton("200.150.180.210", &(x.destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 443;
+    x.protocolo = IPPROTO_TCP;
 
     assert(coincide(&a, &x) == 1);
     assert(coincide(&b, &x) == 0);
@@ -445,55 +430,65 @@ void test_coincide_puerto_origen_destino() {
     struct clase a, b, c;
     struct paquete x;
     /* creo clases de trafico */
-    a.cant_subredes_a = 0;
-    a.cant_subredes_b = 0;
+    init_clase(&a);
+    init_clase(&b);
+    init_clase(&c);
+
     a.cant_puertos_a = 3;
     a.cant_puertos_b = 2;
-    a.protocolo = 0;
-    a.puertos_a = malloc(3 * sizeof(u_int16_t));
-    *(a.puertos_a) = 22;
-    *(a.puertos_a + 1) = 80;
-    *(a.puertos_a + 2) = 443;
-    a.puertos_b = malloc(2 * sizeof(u_int16_t));
-    *(a.puertos_b) = 1025;
-    *(a.puertos_b + 1) = 12345;
+    a.puertos_a = malloc(3 * sizeof(struct puerto));
+    (a.puertos_a)->numero = 22;
+    (a.puertos_a)->protocolo = 0;
+    (a.puertos_a + 1)->numero = 80;
+    (a.puertos_a + 1)->protocolo = 0;
+    (a.puertos_a + 2)->numero = 443;
+    (a.puertos_a + 2)->protocolo = 0;
+    a.puertos_b = malloc(2 * sizeof(struct puerto));
+    (a.puertos_b)->numero = 1025;
+    (a.puertos_b)->protocolo = 0;
+    (a.puertos_b + 1)->numero = 12345;
+    (a.puertos_b + 1)->protocolo = 0;
 
     b.cant_subredes_a = 1;
-    b.cant_subredes_b = 0;
     b.cant_puertos_a = 2;
     b.cant_puertos_b = 2;
-    b.protocolo = 0;
     b.subredes_a = malloc(sizeof(struct subred));
     inet_aton("10.0.0.0", &(b.subredes_a->red));
     b.subredes_a->mascara = GET_MASCARA(8);
-    b.puertos_a = malloc(2 * sizeof(u_int16_t));
-    *(b.puertos_a) = 80;
-    *(b.puertos_a + 1) = 443;
-    b.puertos_b = malloc(2 * sizeof(u_int16_t));
-    *(b.puertos_b) = 80;
-    *(b.puertos_b + 1) = 12345;
+    b.puertos_a = malloc(2 * sizeof(struct puerto));
+    (b.puertos_a)->numero = 80;
+    (b.puertos_a)->protocolo = 0;
+    (b.puertos_a + 1)->numero = 443;
+    (b.puertos_a + 1)->protocolo = 0;
+    b.puertos_b = malloc(2 * sizeof(struct puerto));
+    (b.puertos_b)->numero = 80;
+    (b.puertos_b)->protocolo = 0;
+    (b.puertos_b + 1)->numero = 12345;
+    (b.puertos_b + 1)->protocolo = 0;
 
     c.cant_subredes_a = 1;
     c.cant_subredes_b = 1;
-    c.cant_puertos_a = 2;
-    c.cant_puertos_b = 2;
-    c.protocolo = 0;
+    c.cant_puertos_a = 1;
+    c.cant_puertos_b = 1;
     c.subredes_a = malloc(sizeof(struct subred));
     inet_aton("192.168.122.177", &(c.subredes_a->red));
     c.subredes_a->mascara = ~0; /*significa que es host (todos los bits en 1)*/
     c.subredes_b = malloc(sizeof(struct subred));
     inet_aton("200.150.0.0", &(c.subredes_b->red));
     c.subredes_b->mascara = GET_MASCARA(16);
-    c.puertos_a = malloc(1 * sizeof(u_int16_t));
-    *(c.puertos_a + 1) = 443;
-    c.puertos_b = malloc(1 * sizeof(u_int16_t));
-    *(c.puertos_b + 1) = 12345;
+    c.puertos_a = malloc(sizeof(struct puerto));
+    c.puertos_a->numero = 443;
+    c.puertos_a->protocolo = 0;
+    c.puertos_b = malloc(sizeof(struct puerto));
+    c.puertos_b->numero = 12345;
+    c.puertos_b->protocolo = 0;
 
     /* creo paquete */
     inet_aton("192.168.122.177", &(x.origen));
     inet_aton("200.150.180.210", &(x.destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 443;
+    x.protocolo = IPPROTO_TCP;
 
     assert(coincide(&a, &x) == 1);
     assert(coincide(&b, &x) == 0);
@@ -525,32 +520,29 @@ void test_coincide_protocolo() {
     struct clase a, b, c;
     struct paquete x;
     /* creo clases de trafico */
-    a.cant_subredes_a = 0;
-    a.cant_subredes_b = 0;
+    init_clase(&a);
+    init_clase(&b);
+    init_clase(&c);
+
     a.cant_puertos_a = 1;
-    a.cant_puertos_b = 0;
-    a.protocolo = IPPROTO_TCP;
-    a.puertos_a = malloc(sizeof(u_int16_t));
-    *(a.puertos_a) = 22;
+    a.puertos_a = malloc(sizeof(struct puerto));
+    a.puertos_a->numero = 22;
+    a.puertos_a->protocolo = IPPROTO_TCP;
+
 
     b.cant_subredes_a = 1;
-    b.cant_subredes_b = 0;
     b.cant_puertos_a = 1;
-    b.cant_puertos_b = 0;
-    b.protocolo = IPPROTO_TCP;
     b.subredes_a = malloc(sizeof(struct subred));
     inet_aton("10.0.0.0", &(b.subredes_a->red));
     b.subredes_a->mascara = GET_MASCARA(8);
-    b.puertos_a = malloc(sizeof(u_int16_t));
-    *(b.puertos_a) = 22;
+    b.puertos_a = malloc(sizeof(struct puerto));
+    b.puertos_a->numero = 22;
+    b.puertos_a->protocolo = IPPROTO_TCP;
 
-    c.cant_subredes_a = 0;
-    c.cant_subredes_b = 0;
     c.cant_puertos_a = 1;
-    c.cant_puertos_b = 0;
-    c.protocolo = IPPROTO_UDP;
-    c.puertos_a = malloc(sizeof(u_int16_t));
-    *(c.puertos_a) = 22;
+    c.puertos_a = malloc(sizeof(struct puerto));
+    c.puertos_a->numero = 22;
+    c.puertos_a->protocolo = IPPROTO_UDP;
 
     /* creo paquete */
     inet_aton("192.168.122.177", &(x.origen));
@@ -672,8 +664,9 @@ void test_analizar_paquete() {
     init_clase(clases + 2);
     strncpy(clases[2].nombre, "c2", LONG_NOMBRE);
     clases[2].cant_puertos_a = 1;
-    clases[2].puertos_a = malloc(sizeof(u_int16_t));
-    *(clases[2].puertos_a) = 12;
+    clases[2].puertos_a = malloc(sizeof(struct puerto));
+    clases[2].puertos_a->numero = 12;
+    clases[2].puertos_a->protocolo = 0;
 
     analizador.clases = clases;
     analizador.cant_clases = 3;
@@ -685,6 +678,7 @@ void test_analizar_paquete() {
     paquetes[0].puerto_destino = 11;
     paquetes[0].bytes = 10;
     paquetes[0].direccion = SALIENTE;
+    paquetes[0].protocolo = IPPROTO_TCP;
 
     inet_aton("1.1.1.1", &(paquetes[1].origen));
     inet_aton("3.3.3.3", &(paquetes[1].destino));
@@ -692,6 +686,7 @@ void test_analizar_paquete() {
     paquetes[1].puerto_destino = 12;
     paquetes[1].bytes = 10;
     paquetes[1].direccion = SALIENTE;
+    paquetes[1].protocolo = IPPROTO_TCP;
 
     inet_aton("2.2.2.2", &(paquetes[2].origen));
     inet_aton("1.1.1.1", &(paquetes[2].destino));
@@ -699,6 +694,7 @@ void test_analizar_paquete() {
     paquetes[2].puerto_destino = 1;
     paquetes[2].bytes = 10;
     paquetes[2].direccion = ENTRANTE;
+    paquetes[2].protocolo = IPPROTO_TCP;
 
     inet_aton("8.8.8.8", &(paquetes[3].origen));
     inet_aton("2.2.2.2", &(paquetes[3].destino));
@@ -706,6 +702,7 @@ void test_analizar_paquete() {
     paquetes[3].puerto_destino = 1;
     paquetes[3].bytes = 10;
     paquetes[3].direccion = ENTRANTE;
+    paquetes[3].protocolo = IPPROTO_TCP;
 
     /* comparo paquetes con las clases de trafico */
     for (int i=0; i < 4; i++)

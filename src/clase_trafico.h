@@ -45,6 +45,17 @@ struct subred {
 };
 
 /**
+ * struct puerto
+ * ---------------------------------------------------------------------------
+ * Estructura que representa una puerto. Tiene un numero de puerto y numero
+ * de protocolo (el 6 es TCP y el 17 es UDP)
+ */
+struct puerto {
+    int numero; /* desde 1 a 65535 */
+    int protocolo; /* 6 es TCP, 17 es UDP */
+};
+
+/**
  * struct clase
  * ---------------------------------------------------------------------------
  * Estructura de datos que representa los patrones a reconocer en los paquetes
@@ -76,11 +87,10 @@ struct clase {
     int cant_puertos_b; /* Cantidad de puertos que tiene el grupo B */
     int cant_subredes_a; /* Cantidad de subredes que tiene el grupo A */
     int cant_subredes_b; /* Cantidad de subredes que tiene el grupo B */
-    int protocolo; /* Protocolo que aplica esta clase */
     struct subred *subredes_a; /* Array de subredes que definen el grupo A */
     struct subred *subredes_b; /* Array de subredes que definen el grupo B */
-    u_int16_t *puertos_a; /* Array de puertos que definen el grupo A */
-    u_int16_t *puertos_b; /* Array de puertos que definen el grupo B */
+    struct puerto *puertos_a; /* Array de puertos que definen el grupo A */
+    struct puerto *puertos_b; /* Array de puertos que definen el grupo B */
     char nombre[LONG_NOMBRE]; /* Nombre que identifica clase de trafico */
     char descripcion[LONG_DESCRIPCION]; /* Descripcion de clase de trafico */
 };

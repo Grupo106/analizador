@@ -25,9 +25,6 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
     int redes_B = !(clase->cant_subredes_b > 0);
     int puerto_A = !(clase->cant_puertos_a > 0);
     int puerto_B = !(clase->cant_puertos_b > 0);
-    int protocolo = (clase->protocolo != 0)
-                        ? paquete->protocolo == clase->protocolo
-                        : 1;
 
     /* busco coincidencia en subredes a */
     while (!redes_A && i < clase->cant_subredes_a) {
@@ -59,25 +56,29 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
     /* busco coincidencia en puertos a */
     i = 0;
     while (!puerto_A && i < clase->cant_puertos_a) {
-        /* si el puerto de origen o de destino del paquete es igual al que
-         * define la clase */
-        puerto_A = paquete->puerto_origen == *(clase->puertos_a + i) ||
-                   paquete->puerto_destino == *(clase->puertos_a + i);
+        /* comparo numero de puerto */
+        puerto_A = paquete->puerto_origen == (clase->puertos_a + i)->numero ||
+                   paquete->puerto_destino == (clase->puertos_a + i)->numero;
+        /* comparo por protocolo. si el protocolo es cero es comodin. */
+        puerto_A &= paquete->protocolo == (clase->puertos_a + i)->protocolo ||
+                    (clase->puertos_a + i)->protocolo == 0; 
         i++;
     }
 
     /* busco coincidencia en puertos b */
     i = 0;
     while (!puerto_B && i < clase->cant_puertos_b) {
-        /* si el puerto de origen o de destino del paquete es igual al que
-         * define la clase */
-        puerto_B = paquete->puerto_origen == *(clase->puertos_b + i) ||
-                   paquete->puerto_destino == *(clase->puertos_b + i);
+        /* comparo numero de puerto */
+        puerto_B = paquete->puerto_origen == (clase->puertos_b + i)->numero ||
+                   paquete->puerto_destino == (clase->puertos_b + i)->numero;
+        /* comparo por protocolo. si el protocolo es cero es comodin. */
+        puerto_B &= paquete->protocolo == (clase->puertos_b + i)->protocolo ||
+                    (clase->puertos_b + i)->protocolo == 0; 
         i++;
     }
     /* solamente devuelve verdadero si todos los parametros que se compararon
      * son verdaderos. */
-    return redes_A && redes_B && puerto_A && puerto_B && protocolo;
+    return redes_A && redes_B && puerto_A && puerto_B;
 }
 
 /**
