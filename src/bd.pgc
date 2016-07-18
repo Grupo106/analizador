@@ -217,15 +217,17 @@ int obtener_clases(struct s_analizador *analizador)
         strncpy(clase->nombre, (clases + i)->nombre, LONG_NOMBRE);
         strncpy(clase->descripcion, (clases + i)->descripcion,
                 LONG_DESCRIPCION);
-        obtener_subredes(clase);
-        obtener_puertos(clase);
+        obtener_subredes(clase, 'a');
+        obtener_subredes(clase, 'b');
+        obtener_puertos(clase, 'a');
+        obtener_puertos(clase, 'b');
     }
 
     /* libero recursos */
     EXEC SQL COMMIT;
     free(clases);
     return cantidad;
-}
+} /* fin obtener_clases */
 
 /**
  * free_clase
@@ -247,36 +249,52 @@ void free_clase(struct clase *clase) {
  *
  *  Carga tanto grupo A como grupo B.
  *
- *  TODO: Falta cargar grupo B
  */
-int obtener_subredes(struct clase* clase)
+int obtener_subredes(struct clase* clase, char grupo)
 {
-    struct subred *subred;
-    int i;
+    struct subred **array, /* almacena el array de subredes */
+                  *subred; /* itera sobre el array */
+    int i, /* itera sobre el resultset de la consulta */
+        *size; /* almacena la cantidad de elementos en el array */
+
     EXEC SQL BEGIN DECLARE SECTION;
-        const char *qcidr = "SELECT direccion, prefijo "
+        const char *query = "SELECT direccion, prefijo "
                            "FROM v_clase_cidr "
-                           "WHERE id_clase = ?";
-        const char *qcount = "SELECT count(1) "
+                           "WHERE id_clase = ? "
+                           "AND grupo = ?";
+        const char *count = "SELECT count(1) "
                             "FROM v_clase_cidr " 
-                            "WHERE id_clase = ?";
+                            "WHERE id_clase = ? "
+                            "AND grupo = ?";
         typedef struct {
             char direccion[INET_ADDRSTRLEN];
             unsigned int prefijo;
         } t_cidr;
         t_cidr *cidr;
         t_cidr *it;
+        char _grupo;
         int cantidad;
         int id_clase;
     EXEC SQL END DECLARE SECTION;
 
+    /* defino el grupo de trabajo */
+    assert(grupo == 'a' || grupo == 'b');
+    _grupo = grupo;
+    if(grupo == 'a') {
+        array = &(clase->subredes_a);
+        size = &(clase->cant_subredes_a);
+    } else if(grupo == 'b') {
+        array = &(clase->subredes_b);
+        size = &(clase->cant_subredes_b);
+    }
+
     /* preparo consultas */
-    EXEC SQL PREPARE sqlcidr FROM :qcidr;
-    EXEC SQL PREPARE sqlcount FROM :qcount;
+    EXEC SQL PREPARE sqlquery FROM :query;
+    EXEC SQL PREPARE sqlcount FROM :count;
 
     /* obtengo la cantidad de filas necesarias */
     id_clase = clase->id;
-    EXEC SQL EXECUTE sqlcount INTO :cantidad USING :id_clase;
+    EXEC SQL EXECUTE sqlcount INTO :cantidad USING :id_clase, :_grupo;
 
     /* obtengo la memoria necesaria para cargar todas las filas */
     cidr = malloc(sizeof(t_cidr) * cantidad);
@@ -290,13 +308,13 @@ int obtener_subredes(struct clase* clase)
     memset(cidr, 0, sizeof(t_cidr) * cantidad);
 
     /* obtengo las subredes */
-    EXEC SQL EXECUTE sqlcidr INTO :cidr USING :id_clase;
+    EXEC SQL EXECUTE sqlquery INTO :cidr USING :id_clase, :_grupo;
 
     /* creo array de subredes */
-    clase->cant_subredes_a = cantidad;
-    clase->subredes_a = malloc(sizeof(struct subred) * cantidad);
-    if (clase->subredes_a == NULL) {
-        syslog(LOG_ERR,
+    *size = cantidad;
+    *array = malloc(sizeof(struct subred) * cantidad);
+    if (*array == NULL) {
+        syslog(LOG_CRIT,
                "No hay memoria disponible para cargar %d subredes",
                cantidad);
         exit(EXIT_FAILURE);
@@ -304,7 +322,7 @@ int obtener_subredes(struct clase* clase)
 
     /* cargo subredes */
     for(i = 0; i < cantidad; i++) {
-        subred = clase->subredes_a + i;
+        subred = *array + i;
         it = cidr + i;
         /* obtengo direccion de red en formato binario */
         inet_pton(AF_INET, it->direccion, &(subred->red));
@@ -321,7 +339,7 @@ int obtener_subredes(struct clase* clase)
     EXEC SQL COMMIT;
     free(cidr);
     return cantidad;
-}
+} /* fin obtener_subredes */
 
 /**
  * obtener_puertos(*clase)
@@ -333,24 +351,40 @@ int obtener_subredes(struct clase* clase)
  *
  *  TODO: Falta cargar grupo B
  */
-int obtener_puertos(struct clase* clase)
+int obtener_puertos(struct clase* clase, char grupo)
 {
-    int i;
+    struct puerto **array; /* almacena el array de puertos */
+    int i, /* itera sobre el resultset de la consulta */
+        *size; /* almacena la cantidad de elementos en el array */
     EXEC SQL BEGIN DECLARE SECTION;
         const char *query = "SELECT numero, protocolo "
                             "FROM v_clase_puerto "
-                            "WHERE id_clase = ?";
+                            "WHERE id_clase = ? "
+                            "AND grupo = ?";
         const char *count = "SELECT count(1) "
                             "FROM v_clase_puerto " 
-                            "WHERE id_clase = ?";
+                            "WHERE id_clase = ? "
+                            "AND grupo = ?";
         typedef struct {
             int numero;
             int protocolo;
         } t_puerto;
         t_puerto *puertos;
+        char _grupo;
         int cantidad;
         int id_clase;
     EXEC SQL END DECLARE SECTION;
+
+    /* defino el grupo de trabajo */
+    assert(grupo == 'a' || grupo == 'b');
+    _grupo = grupo;
+    if(grupo == 'a') {
+        array = &(clase->puertos_a);
+        size = &(clase->cant_puertos_a);
+    } else if(grupo == 'b') {
+        array = &(clase->puertos_b);
+        size = &(clase->cant_puertos_b);
+    }
 
     /* preparo consultas */
     EXEC SQL PREPARE sqlquery FROM :query;
@@ -358,7 +392,7 @@ int obtener_puertos(struct clase* clase)
 
     /* obtengo la cantidad de filas necesarias */
     id_clase = clase->id;
-    EXEC SQL EXECUTE sqlcount INTO :cantidad USING :id_clase;
+    EXEC SQL EXECUTE sqlcount INTO :cantidad USING :id_clase, :_grupo;
 
     /* obtengo la memoria necesaria para cargar todas las filas */
     puertos = malloc(sizeof(t_puerto) * cantidad);
@@ -372,12 +406,12 @@ int obtener_puertos(struct clase* clase)
     memset(puertos, 0, sizeof(t_puerto) * cantidad);
 
     /* obtengo los puertos */
-    EXEC SQL EXECUTE sqlquery INTO :puertos USING :id_clase;
+    EXEC SQL EXECUTE sqlquery INTO :puertos USING :id_clase, :_grupo;
 
     /* creo array de puertos */
-    clase->cant_puertos_a = cantidad;
-    clase->puertos_a = malloc(sizeof(struct puerto) * cantidad);
-    if (clase->puertos_a == NULL) {
+    *size = cantidad;
+    *array = malloc(sizeof(struct puerto) * cantidad);
+    if (*array == NULL) {
         syslog(LOG_CRIT,
                "No hay memoria disponible para cargar %d puertos",
                cantidad);
@@ -386,20 +420,19 @@ int obtener_puertos(struct clase* clase)
 
     /* cargo puertos */
     for(i = 0; i < cantidad; i++) {
-        (clase->puertos_a + i)->numero = (puertos + i)->numero;
-        (clase->puertos_a + i)->protocolo = (puertos + i)->protocolo;
+        memcpy(*array + i, puertos + i, sizeof(struct puerto));
     }
 
     /* libero recursos */
     EXEC SQL COMMIT;
     free(puertos);
     return cantidad;
-}
+} /* fin obtener_puertos */
 
 /**
  * print_sqlca()
  * -------------------------------------------------------------------------
- * Imprime error en caso de ocurrir alguno
+ * Imprime error de base de datos
  */
 void print_sqlca() {
     syslog(LOG_ERR, "==== sqlca ====\n");
