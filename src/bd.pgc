@@ -152,7 +152,7 @@ int obtener_paquetes(struct s_analizador* analizador,
 int obtener_clases(struct s_analizador *analizador)
 {
     struct clase *c;
-    #define REPETICIONES 2000
+    #define REPETICIONES 1000
     #define CANT_PAQUETES 3 * REPETICIONES
     analizador->cant_clases = CANT_PAQUETES;
     c = analizador->clases = malloc(CANT_PAQUETES * sizeof(struct clase));
@@ -161,13 +161,14 @@ int obtener_clases(struct s_analizador *analizador)
     strncpy(c->nombre, "Default", LONG_NOMBRE);
     strncpy(c->descripcion, "Clase por defecto", LONG_DESCRIPCION);
     /* XXX: Mock clases */
-    for(int i = 0; i < REPETICIONES - 1; i++) {
+    for(int i = 0; i < REPETICIONES; i++) {
         /* SSH */
         c++;
         init_clase(c);
         strncpy(c->nombre, "SSH", LONG_NOMBRE);
         strncpy(c->descripcion, "Secure shell - Administracion remota",
                 LONG_DESCRIPCION);
+        c->id = i + 0;
         c->cant_puertos_a = 1;
         c->puertos_a = malloc(sizeof(u_int16_t));
         *(c->puertos_a) = 22;
@@ -176,6 +177,7 @@ int obtener_clases(struct s_analizador *analizador)
         init_clase(c);
         strncpy(c->nombre, "HTTP", LONG_NOMBRE);
         strncpy(c->descripcion, "Navegacion web", LONG_DESCRIPCION);
+        c->id = i + 1;
         c->cant_puertos_a = 1;
         c->puertos_a = malloc(sizeof(u_int16_t));
         *(c->puertos_a) = 80;
@@ -184,6 +186,7 @@ int obtener_clases(struct s_analizador *analizador)
         init_clase(c);
         strncpy(c->nombre, "HTTPS", LONG_NOMBRE);
         strncpy(c->descripcion, "Navegacion web segura", LONG_DESCRIPCION);
+        c->id = i + 2;
         c->cant_puertos_a = 1;
         c->puertos_a = malloc(sizeof(u_int16_t));
         *(c->puertos_a) = 443;
