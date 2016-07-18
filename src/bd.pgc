@@ -251,6 +251,7 @@ void free_clase(struct clase *clase) {
  */
 int obtener_subredes(struct clase* clase)
 {
+    struct subred *subred;
     int i;
     EXEC SQL BEGIN DECLARE SECTION;
         const char *qcidr = "SELECT direccion, prefijo "
@@ -261,9 +262,10 @@ int obtener_subredes(struct clase* clase)
                             "WHERE id_clase = ?";
         typedef struct {
             char direccion[INET_ADDRSTRLEN];
-            int prefijo;
+            unsigned int prefijo;
         } t_cidr;
         t_cidr *cidr;
+        t_cidr *it;
         int cantidad;
         int id_clase;
     EXEC SQL END DECLARE SECTION;
@@ -302,13 +304,17 @@ int obtener_subredes(struct clase* clase)
 
     /* cargo subredes */
     for(i = 0; i < cantidad; i++) {
+        subred = clase->subredes_a + i;
+        it = cidr + i;
         /* obtengo direccion de red en formato binario */
-        inet_pton(AF_INET,
-                  (cidr+i)->direccion, 
-                  &((clase->subredes_a + i)->red));
+        inet_pton(AF_INET, it->direccion, &(subred->red));
         /* obtengo mascara de subred en formato binario a traves de su prefijo.
          */
-        (clase->subredes_a + i)->mascara = GET_MASCARA((cidr + i)->prefijo);
+        if (it->prefijo == 32) {
+            subred->mascara = MASCARA_HOST;
+        } else if (it->prefijo < 32) {
+            subred->mascara = GET_MASCARA(it->prefijo);
+        }
     }
 
     /* libero recursos */
