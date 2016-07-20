@@ -21,64 +21,68 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
      * encontro ese parametro, ya que al final se hace una operacion AND entre
      * todos los flags.
      */
-    int redes_A = !(clase->cant_subredes_a > 0);
-    int redes_B = !(clase->cant_subredes_b > 0);
-    int puerto_A = !(clase->cant_puertos_a > 0);
-    int puerto_B = !(clase->cant_puertos_b > 0);
+    int redes_O = !(clase->cant_subredes_outside > 0);
+    int redes_I = !(clase->cant_subredes_inside > 0);
+    int puerto_O = !(clase->cant_puertos_outside > 0);
+    int puerto_I = !(clase->cant_puertos_inside > 0);
 
-    /* busco coincidencia en subredes a */
-    while (!redes_A && i < clase->cant_subredes_a) {
+    /* busco coincidencia en subredes outside */
+    while (!redes_O && i < clase->cant_subredes_outside) {
         /* si la ip de origen o la de destino del paquete estan en la subred
          * definida en la clase. */
-        redes_A = IN_NET(paquete->origen.s_addr, /* origen */
-                         (clase->subredes_a + i)->red.s_addr,
-                         (clase->subredes_a + i)->mascara) ||
+        redes_O = IN_NET(paquete->origen.s_addr, /* origen */
+                         (clase->subredes_outside + i)->red.s_addr,
+                         (clase->subredes_outside + i)->mascara) ||
                   IN_NET(paquete->destino.s_addr, /* destino */
-                         (clase->subredes_a + i)->red.s_addr,
-                         (clase->subredes_a + i)->mascara);
+                         (clase->subredes_outside + i)->red.s_addr,
+                         (clase->subredes_outside + i)->mascara);
         i++;
     }
 
-    /* busco coincidencia en subredes b */
+    /* busco coincidencia en subredes inside */
     i = 0;
-    while (!redes_B && i < clase->cant_subredes_b) {
+    while (!redes_I && i < clase->cant_subredes_inside) {
         /* si la ip de origen o la de destino del paquete estan en la subred
          * definida en la clase. */
-        redes_B = IN_NET(paquete->origen.s_addr, /* origen */
-                         (clase->subredes_b + i)->red.s_addr,
-                         (clase->subredes_b + i)->mascara) ||
+        redes_I = IN_NET(paquete->origen.s_addr, /* origen */
+                         (clase->subredes_inside + i)->red.s_addr,
+                         (clase->subredes_inside + i)->mascara) ||
                   IN_NET(paquete->destino.s_addr, /* destino */
-                         (clase->subredes_b + i)->red.s_addr,
-                         (clase->subredes_b + i)->mascara);
+                         (clase->subredes_inside + i)->red.s_addr,
+                         (clase->subredes_inside + i)->mascara);
         i++;
     }
 
-    /* busco coincidencia en puertos a */
+    /* busco coincidencia en puertos outside */
     i = 0;
-    while (!puerto_A && i < clase->cant_puertos_a) {
+    while (!puerto_O && i < clase->cant_puertos_outside) {
         /* comparo numero de puerto */
-        puerto_A = paquete->puerto_origen == (clase->puertos_a + i)->numero ||
-                   paquete->puerto_destino == (clase->puertos_a + i)->numero;
+        puerto_O = 
+            paquete->puerto_origen == (clase->puertos_outside + i)->numero ||
+            paquete->puerto_destino == (clase->puertos_outside + i)->numero;
         /* comparo por protocolo. si el protocolo es cero es comodin. */
-        puerto_A &= paquete->protocolo == (clase->puertos_a + i)->protocolo ||
-                    (clase->puertos_a + i)->protocolo == 0; 
+        puerto_O &= 
+           paquete->protocolo == (clase->puertos_outside + i)->protocolo ||
+           (clase->puertos_outside + i)->protocolo == 0; 
         i++;
     }
 
-    /* busco coincidencia en puertos b */
+    /* busco coincidencia en puertos inside */
     i = 0;
-    while (!puerto_B && i < clase->cant_puertos_b) {
+    while (!puerto_I && i < clase->cant_puertos_inside) {
         /* comparo numero de puerto */
-        puerto_B = paquete->puerto_origen == (clase->puertos_b + i)->numero ||
-                   paquete->puerto_destino == (clase->puertos_b + i)->numero;
+        puerto_I = 
+            paquete->puerto_origen == (clase->puertos_inside + i)->numero ||
+            paquete->puerto_destino == (clase->puertos_inside + i)->numero;
         /* comparo por protocolo. si el protocolo es cero es comodin. */
-        puerto_B &= paquete->protocolo == (clase->puertos_b + i)->protocolo ||
-                    (clase->puertos_b + i)->protocolo == 0; 
+        puerto_I &= 
+            paquete->protocolo == (clase->puertos_inside + i)->protocolo ||
+            (clase->puertos_inside + i)->protocolo == 0; 
         i++;
     }
     /* solamente devuelve verdadero si todos los parametros que se compararon
      * son verdaderos. */
-    return redes_A && redes_B && puerto_A && puerto_B;
+    return redes_O && redes_I && puerto_O && puerto_I;
 }
 
 /**
@@ -141,13 +145,13 @@ int clases_to_json(FILE* file, const struct s_analizador *analizador)
 int analizar_paquete(const struct s_analizador* analizador,
         const struct paquete* paquete)
 {
-    int coincidencias = 0; /* flag para saber si el paquete tuvo alguna
-                            * coincidencia*/
+    int coincidencias = 0; /* si el paquete tuvo alguna coincidencia. */
     int cmp = 0; /* almacena el resultado de la comparacion con la clase */
     int i = 0; /* iterador de clases */
 
     /* Por defecto, la primer clase es la clase por default, por lo tanto
-     * empiezo a comparar con la clase 1 */
+     * empiezo a comparar con la clase 1.
+     */
     for (i = 1; i < analizador->cant_clases; i++) {
         cmp = coincide(analizador->clases + i, paquete);
         coincidencias |= cmp;

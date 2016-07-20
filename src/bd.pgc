@@ -211,7 +211,7 @@ int obtener_clases(struct s_analizador *analizador)
     
     /* cargo clases de trafico instaladas */
     for(i = 0; i < cantidad; i++) {
-        clase = analizador->clases + i + 1; /* sumo uno por clase por defecto */
+        clase = analizador->clases + i + 1; /* sumo uno por clase por defecto*/
         init_clase(clase);
         clase->id = (clases + i)->id_clase;
         strncpy(clase->nombre, (clases + i)->nombre, LONG_NOMBRE);
@@ -235,10 +235,10 @@ int obtener_clases(struct s_analizador *analizador)
  *  Libera memoria ocupada por una clase de trafico
  */
 void free_clase(struct clase *clase) {
-    free(clase->subredes_a);
-    free(clase->subredes_b);
-    free(clase->puertos_a);
-    free(clase->puertos_b);
+    free(clase->subredes_outside);
+    free(clase->subredes_inside);
+    free(clase->puertos_outside);
+    free(clase->puertos_inside);
 }
 
 /**
@@ -281,11 +281,11 @@ int obtener_subredes(struct clase* clase, char grupo)
     assert(grupo == 'a' || grupo == 'b');
     _grupo = grupo;
     if(grupo == 'a') {
-        array = &(clase->subredes_a);
-        size = &(clase->cant_subredes_a);
+        array = &(clase->subredes_outside);
+        size = &(clase->cant_subredes_outside);
     } else if(grupo == 'b') {
-        array = &(clase->subredes_b);
-        size = &(clase->cant_subredes_b);
+        array = &(clase->subredes_inside);
+        size = &(clase->cant_subredes_inside);
     }
 
     /* preparo consultas */
@@ -379,11 +379,11 @@ int obtener_puertos(struct clase* clase, char grupo)
     assert(grupo == 'a' || grupo == 'b');
     _grupo = grupo;
     if(grupo == 'a') {
-        array = &(clase->puertos_a);
-        size = &(clase->cant_puertos_a);
+        array = &(clase->puertos_outside);
+        size = &(clase->cant_puertos_outside);
     } else if(grupo == 'b') {
-        array = &(clase->puertos_b);
-        size = &(clase->cant_puertos_b);
+        array = &(clase->puertos_inside);
+        size = &(clase->cant_puertos_inside);
     }
 
     /* preparo consultas */
