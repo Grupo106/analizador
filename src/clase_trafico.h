@@ -24,6 +24,12 @@
 #define MASCARA_HOST htonl(0xffffffff); /* Mascara de subred para hosts con
                                          * todos los bits en uno.
                                          */
+/* identificador para grupos de redes o puertos de host ubicados en la red 
+ * local
+ */
+#define GRUPO_INSIDE 'i'
+/* identificador para grupos de redes o puertos de host ubicados en INTERNET */
+#define GRUPO_OUTSIDE 'o'
 
 /*
  * ESTRUCTURAS

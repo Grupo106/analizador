@@ -217,10 +217,10 @@ int obtener_clases(struct s_analizador *analizador)
         strncpy(clase->nombre, (clases + i)->nombre, LONG_NOMBRE);
         strncpy(clase->descripcion, (clases + i)->descripcion,
                 LONG_DESCRIPCION);
-        obtener_subredes(clase, 'a');
-        obtener_subredes(clase, 'b');
-        obtener_puertos(clase, 'a');
-        obtener_puertos(clase, 'b');
+        obtener_subredes(clase, GRUPO_OUTSIDE);
+        obtener_subredes(clase, GRUPO_INSIDE);
+        obtener_puertos(clase, GRUPO_OUTSIDE);
+        obtener_puertos(clase, GRUPO_INSIDE);
     }
 
     /* libero recursos */
@@ -252,10 +252,10 @@ void free_clase(struct clase *clase) {
  */
 int obtener_subredes(struct clase* clase, char grupo)
 {
-    struct subred **array, /* almacena el array de subredes */
-                  *subred; /* itera sobre el array */
+    struct subred **array = NULL, /* almacena el array de subredes */
+                  *subred = NULL; /* itera sobre el array */
     int i, /* itera sobre el resultset de la consulta */
-        *size; /* almacena la cantidad de elementos en el array */
+        *size = NULL; /* almacena la cantidad de elementos en el array */
 
     EXEC SQL BEGIN DECLARE SECTION;
         const char *query = "SELECT direccion, prefijo "
@@ -278,12 +278,12 @@ int obtener_subredes(struct clase* clase, char grupo)
     EXEC SQL END DECLARE SECTION;
 
     /* defino el grupo de trabajo */
-    assert(grupo == 'a' || grupo == 'b');
+    assert(grupo == GRUPO_OUTSIDE || grupo == GRUPO_INSIDE);
     _grupo = grupo;
-    if(grupo == 'a') {
+    if(grupo == GRUPO_OUTSIDE) {
         array = &(clase->subredes_outside);
         size = &(clase->cant_subredes_outside);
-    } else if(grupo == 'b') {
+    } else if(grupo == GRUPO_INSIDE) {
         array = &(clase->subredes_inside);
         size = &(clase->cant_subredes_inside);
     }
@@ -353,9 +353,9 @@ int obtener_subredes(struct clase* clase, char grupo)
  */
 int obtener_puertos(struct clase* clase, char grupo)
 {
-    struct puerto **array; /* almacena el array de puertos */
+    struct puerto **array = NULL; /* almacena el array de puertos */
     int i, /* itera sobre el resultset de la consulta */
-        *size; /* almacena la cantidad de elementos en el array */
+        *size = NULL; /* almacena la cantidad de elementos en el array */
     EXEC SQL BEGIN DECLARE SECTION;
         const char *query = "SELECT numero, protocolo "
                             "FROM v_clase_puerto "
@@ -376,12 +376,12 @@ int obtener_puertos(struct clase* clase, char grupo)
     EXEC SQL END DECLARE SECTION;
 
     /* defino el grupo de trabajo */
-    assert(grupo == 'a' || grupo == 'b');
+    assert(grupo == GRUPO_OUTSIDE || grupo == GRUPO_INSIDE);
     _grupo = grupo;
-    if(grupo == 'a') {
+    if(grupo == GRUPO_OUTSIDE) {
         array = &(clase->puertos_outside);
         size = &(clase->cant_puertos_outside);
-    } else if(grupo == 'b') {
+    } else if(grupo == GRUPO_INSIDE) {
         array = &(clase->puertos_inside);
         size = &(clase->cant_puertos_inside);
     }
