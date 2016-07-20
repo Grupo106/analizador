@@ -158,6 +158,7 @@ void test_coincide_muchas_subredes() {
     /* creo clases de trafico */
     init_clase(&a);
     init_clase(&b);
+
     a.cant_subredes_outside = 3;
     a.subredes_outside = malloc(3 * sizeof(struct subred));
     inet_aton("192.168.0.0", &(a.subredes_outside->red));
@@ -179,6 +180,7 @@ void test_coincide_muchas_subredes() {
     inet_aton("172.17.0.255", &(x.destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 80;
+    x.direccion = SALIENTE;
 
     assert(coincide(&a, &x) == 1);
     assert(coincide(&b, &x) == 0);
@@ -210,19 +212,19 @@ void test_coincide_subred_origen_destino() {
     init_clase(&b);
     a.cant_subredes_outside = 1;
     a.cant_subredes_inside = 1;
-    a.subredes_outside = malloc(sizeof(struct subred)); /* a */
+    a.subredes_outside = malloc(sizeof(struct subred)); /* outside */
     inet_aton("192.168.0.0", &(a.subredes_outside->red));
     a.subredes_outside->mascara = GET_MASCARA(24);
-    a.subredes_inside = malloc(sizeof(struct subred)); /* b */
+    a.subredes_inside = malloc(sizeof(struct subred)); /* inside */
     inet_aton("192.168.1.0", &(a.subredes_inside->red));
     a.subredes_inside->mascara = GET_MASCARA(24);
 
     b.cant_subredes_outside = 1;
     b.cant_subredes_inside = 1;
-    b.subredes_outside = malloc(sizeof(struct subred)); /* a */
-    inet_aton("192.168.1.0", &(b.subredes_outside->red));
+    b.subredes_outside = malloc(sizeof(struct subred)); /* outside */
+    inet_aton("192.168.0.0", &(b.subredes_outside->red));
     b.subredes_outside->mascara = GET_MASCARA(24);
-    b.subredes_inside = malloc(sizeof(struct subred)); /* b */
+    b.subredes_inside = malloc(sizeof(struct subred)); /* inside */
     inet_aton("10.0.0.0", &(b.subredes_inside->red));
     b.subredes_inside->mascara = GET_MASCARA(8);
 
@@ -231,6 +233,7 @@ void test_coincide_subred_origen_destino() {
     inet_aton("192.168.0.121", &(x.destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 80;
+    x.direccion = SALIENTE;
 
     assert(coincide(&a, &x) == 1);
     assert(coincide(&b, &x) == 0);
@@ -323,6 +326,7 @@ void test_coincide_puerto() {
     x.puerto_origen = 12345;
     x.puerto_destino = 22;
     x.protocolo = IPPROTO_TCP;
+    x.direccion = SALIENTE;
 
     assert(coincide(&a, &x) == 1);
     assert(coincide(&b, &x) == 0);
@@ -410,17 +414,17 @@ void test_coincide_muchos_puertos() {
  *
  *  En este caso de prueba se establecen los siguiente valores:
  *
- *  clase trafico   | direccion de red | puerto o  | puerto d | coincide
- *  =============== + ================ + ========= + ======== + ========
- *  a               |                  | 22        | 1025     | si
- *                  |                  | 80        | 12345    |
- *                  |                  | 443       |          |
- * ---------------- + ---------------- + --------- + -------- + -----------
- *  b               | 10.0.0.0/8       | 80        | 80       | no
- *                  |                  | 443       | 12345    |
- * ---------------- + ---------------- + --------- + -------- + -----------
- *  c               | 192.168.122.177  | 443       | 12345    | si
- *                  | 200.150.0.0/16   |           |          |
+ *  clase trafico   | direccion de red   | puerto o  | puerto d | coincide
+ *  =============== + ================== + ========= + ======== + ========
+ *  a               |                    | 22        | 1025     | si
+ *                  |                    | 80        | 12345    |
+ *                  |                    | 443       |          |
+ * ---------------- + ------------------ + --------- + -------- + -----------
+ *  b               | 10.0.0.0/8         | 80        | 80       | no
+ *                  |                    | 443       | 12345    |
+ * ---------------- + ------------------ + --------- + -------- + -----------
+ *  c               | o: 192.168.122.177 | 443       | 12345    | no
+ *                  | i: 200.150.0.0/16  |           |          |
  *
  *  paquete | ip origen       | ip dest        | puerto origen | puerto dest
  *  ======= + =============== + ============== + ============= + ===========
@@ -489,10 +493,11 @@ void test_coincide_puerto_origen_destino() {
     x.puerto_origen = 12345;
     x.puerto_destino = 443;
     x.protocolo = IPPROTO_TCP;
+    x.direccion = SALIENTE;
 
     assert(coincide(&a, &x) == 1);
     assert(coincide(&b, &x) == 0);
-    assert(coincide(&c, &x) == 1);
+    assert(coincide(&c, &x) == 0);
 }
 
 /*
@@ -619,9 +624,9 @@ void test_imprimir() {
  *  =============== + ================ + =======
  *   default        |                  |
  * ---------------- + ---------------- + -------
- *   c1             |  1.0.0.0/8       |
+ *   c1             | i: 1.0.0.0/8     |
  * ---------------- + ---------------- + -------
- *   c2             |                  | 12
+ *   c2             |                  | o: 12
  *
  *  paquete | origen  | destino | p_origen | p_dest | bytes | direccion
  *  ======= + ======= +======== + ======== + ====== + ===== | ==========
@@ -656,10 +661,10 @@ void test_analizar_paquete() {
 
     init_clase(clases + 1);
     strncpy(clases[1].nombre, "c1", LONG_NOMBRE);
-    clases[1].cant_subredes_outside = 1;
-    clases[1].subredes_outside = malloc(sizeof(struct subred));
-    inet_aton("1.0.0.0", &(clases[1].subredes_outside->red));
-    clases[1].subredes_outside->mascara = GET_MASCARA(8);
+    clases[1].cant_subredes_inside = 1;
+    clases[1].subredes_inside = malloc(sizeof(struct subred));
+    inet_aton("1.0.0.0", &(clases[1].subredes_inside->red));
+    clases[1].subredes_inside->mascara = GET_MASCARA(8);
 
     init_clase(clases + 2);
     strncpy(clases[2].nombre, "c2", LONG_NOMBRE);

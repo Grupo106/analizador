@@ -16,7 +16,7 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
      * Estas variables son banderas que se indican si un parametro del paquete
      * coincide con la clase
      *
-     * Si esta en 1 significa que se encontro ese parametro en el paquete Por
+     * Si esta en 1 significa que se encontro ese parametro en el paquete. Por
      * defecto, si la clase no especifica ese parametro, se asume que se
      * encontro ese parametro, ya que al final se hace una operacion AND entre
      * todos los flags.
@@ -28,56 +28,93 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
 
     /* busco coincidencia en subredes outside */
     while (!redes_O && i < clase->cant_subredes_outside) {
-        /* si la ip de origen o la de destino del paquete estan en la subred
-         * definida en la clase. */
-        redes_O = IN_NET(paquete->origen.s_addr, /* origen */
-                         (clase->subredes_outside + i)->red.s_addr,
-                         (clase->subredes_outside + i)->mascara) ||
-                  IN_NET(paquete->destino.s_addr, /* destino */
-                         (clase->subredes_outside + i)->red.s_addr,
-                         (clase->subredes_outside + i)->mascara);
+        redes_O = (
+          (
+            /* si el paquete es entrante, la direccion **origen** debe
+             * pertenecer a la clase.
+             */
+            paquete->direccion == ENTRANTE &&
+            IN_NET(paquete->origen.s_addr, /* origen */
+                   (clase->subredes_outside + i)->red.s_addr,
+                   (clase->subredes_outside + i)->mascara)
+          ) || (
+            /* si el paquete es saliente, la direccion de **destino** debe
+             * pertenecer a la clase.
+             */
+            paquete->direccion == SALIENTE &&
+            IN_NET(paquete->destino.s_addr,
+                   (clase->subredes_outside + i)->red.s_addr,
+                   (clase->subredes_outside + i)->mascara)
+          )
+        );
         i++;
     }
 
     /* busco coincidencia en subredes inside */
     i = 0;
     while (!redes_I && i < clase->cant_subredes_inside) {
-        /* si la ip de origen o la de destino del paquete estan en la subred
-         * definida en la clase. */
-        redes_I = IN_NET(paquete->origen.s_addr, /* origen */
-                         (clase->subredes_inside + i)->red.s_addr,
-                         (clase->subredes_inside + i)->mascara) ||
-                  IN_NET(paquete->destino.s_addr, /* destino */
-                         (clase->subredes_inside + i)->red.s_addr,
-                         (clase->subredes_inside + i)->mascara);
+        redes_I = (
+          (
+            /* si el paquete es saliente, la direccion **origen** debe
+             * pertenecer a la clase.
+             */
+            paquete->direccion == SALIENTE &&
+            IN_NET(paquete->origen.s_addr, /* origen */
+                   (clase->subredes_inside + i)->red.s_addr,
+                   (clase->subredes_inside + i)->mascara)
+          ) || (
+            /* si el paquete es entrante, la direccion de **destino** debe
+             * pertenecer a la clase.
+             */
+            paquete->direccion == ENTRANTE &&
+            IN_NET(paquete->destino.s_addr,
+                   (clase->subredes_inside + i)->red.s_addr,
+                   (clase->subredes_inside + i)->mascara)
+          )
+        );
         i++;
     }
 
     /* busco coincidencia en puertos outside */
     i = 0;
     while (!puerto_O && i < clase->cant_puertos_outside) {
-        /* comparo numero de puerto */
-        puerto_O = 
-            paquete->puerto_origen == (clase->puertos_outside + i)->numero ||
-            paquete->puerto_destino == (clase->puertos_outside + i)->numero;
-        /* comparo por protocolo. si el protocolo es cero es comodin. */
+        puerto_O = (
+          (
+            /* si el paquete es entrante debe coincidir el puerto origen */
+            paquete->direccion == ENTRANTE &&
+            paquete->puerto_origen == (clase->puertos_outside + i)->numero
+          ) || (
+            /* si el paquete es saliente debe coincidir el puerto destino */
+            paquete->direccion == SALIENTE &&
+            paquete->puerto_destino == (clase->puertos_outside + i)->numero
+          )
+        );
+        /* comparo por protocolo. El protocolo es cero es comodin. */
         puerto_O &= 
-           paquete->protocolo == (clase->puertos_outside + i)->protocolo ||
-           (clase->puertos_outside + i)->protocolo == 0; 
+           (clase->puertos_outside + i)->protocolo == 0 ||
+           paquete->protocolo == (clase->puertos_outside + i)->protocolo;
+           
         i++;
     }
 
     /* busco coincidencia en puertos inside */
     i = 0;
     while (!puerto_I && i < clase->cant_puertos_inside) {
-        /* comparo numero de puerto */
-        puerto_I = 
-            paquete->puerto_origen == (clase->puertos_inside + i)->numero ||
-            paquete->puerto_destino == (clase->puertos_inside + i)->numero;
-        /* comparo por protocolo. si el protocolo es cero es comodin. */
+        puerto_I = (
+          (
+            /* si el paquete es saliente debe coincidir el puerto origen */
+            paquete->direccion == SALIENTE &&
+            paquete->puerto_origen == (clase->puertos_inside + i)->numero
+          ) || (
+            /* si el paquete es entrante debe coincidir el puerto destino */
+            paquete->direccion == ENTRANTE &&
+            paquete->puerto_destino == (clase->puertos_inside + i)->numero
+          )
+        );
+        /* comparo por protocolo. El protocolo es cero es comodin. */
         puerto_I &= 
-            paquete->protocolo == (clase->puertos_inside + i)->protocolo ||
-            (clase->puertos_inside + i)->protocolo == 0; 
+           (clase->puertos_inside + i)->protocolo == 0 ||
+           paquete->protocolo == (clase->puertos_inside + i)->protocolo;
         i++;
     }
     /* solamente devuelve verdadero si todos los parametros que se compararon
