@@ -63,7 +63,7 @@ int imprimir(const struct s_analizador *analizador);
  *  Escribe las clases de trafico en el archivo pasado por parametro en formato
  *  JSON
  */
-int clases_to_json(FILE* file, const struct s_analizador*);
+int clases_to_file(FILE* file, const struct s_analizador*);
 
 /**
  * analizar_paquete(s_analizador, paquete)
@@ -104,8 +104,8 @@ int analizar_paquete(const struct s_analizador*, const struct paquete*);
  * de subred *mascara*.
  *
  * ### Parametros
- * * ip: Debe ser del tipo in_addr
- * * red: Debe ser del tipo in_addr
+ * * ip: Debe ser del tipo struct in_addr
+ * * red: Debe ser del tipo struct in_addr
  * * mascara: Debe estar en formato hexadecimal.
  *
  * Para comprobar que una direccion IP pertenece a una IP hay que hacer una
@@ -113,5 +113,21 @@ int analizar_paquete(const struct s_analizador*, const struct paquete*);
  * dirección de red.
  */
 #define IN_NET(ip, red, mascara) ((ip.s_addr & mascara) == red.s_addr)
+
+/*
+ * en_subred(ip, *subred)
+ * --------------------------------------------------------------------------
+ *  Devuelve 1 si la ip pertenece a la subred.
+ *
+ *  Se implemento como macro para evitar tanto codigo repetido en el analizador
+ *
+ *  ### Parametros
+ *    * ip: Debe ser del tipo struct in_addr
+ *    * subred: Debe ser un puntero a struct subred
+ *
+ */
+#define en_subred(ip, subred) IN_NET(ip, \
+                                     subred->red,\
+                                     subred->mascara)
 
 #endif /* ANALIZADOR_H */

@@ -33,18 +33,14 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
             /* si el paquete es entrante, la direccion **origen** debe
              * pertenecer a la clase.
              */
-            paquete->direccion == ENTRANTE &&
-            IN_NET(paquete->ip_origen, /* origen */
-                   (clase->subredes_outside + i)->red,
-                   (clase->subredes_outside + i)->mascara)
+            paquete->direccion == ENTRANTE && 
+            en_subred(paquete->ip_origen, (clase->subredes_outside + i))
           ) || (
             /* si el paquete es saliente, la direccion de **destino** debe
              * pertenecer a la clase.
              */
             paquete->direccion == SALIENTE &&
-            IN_NET(paquete->ip_destino,
-                   (clase->subredes_outside + i)->red,
-                   (clase->subredes_outside + i)->mascara)
+            en_subred(paquete->ip_destino, (clase->subredes_outside + i))
           )
         );
         i++;
@@ -59,17 +55,13 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
              * pertenecer a la clase.
              */
             paquete->direccion == SALIENTE &&
-            IN_NET(paquete->ip_origen, /* origen */
-                   (clase->subredes_inside + i)->red,
-                   (clase->subredes_inside + i)->mascara)
+            en_subred(paquete->ip_origen, (clase->subredes_inside + i))
           ) || (
             /* si el paquete es entrante, la direccion de **destino** debe
              * pertenecer a la clase.
              */
             paquete->direccion == ENTRANTE &&
-            IN_NET(paquete->ip_destino,
-                   (clase->subredes_inside + i)->red,
-                   (clase->subredes_inside + i)->mascara)
+            en_subred(paquete->ip_destino, (clase->subredes_inside + i))
           )
         );
         i++;
@@ -113,8 +105,8 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
         );
         /* comparo por protocolo. El protocolo es cero es comodin. */
         puerto_I &= 
-           (clase->puertos_inside + i)->protocolo == 0 ||
-           paquete->protocolo == (clase->puertos_inside + i)->protocolo;
+            (clase->puertos_inside + i)->protocolo == 0 ||
+            paquete->protocolo == (clase->puertos_inside + i)->protocolo;
         i++;
     }
     /* solamente devuelve verdadero si todos los parametros que se compararon
@@ -129,7 +121,7 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
  */
 int imprimir(const struct s_analizador *analizador)
 {
-    return clases_to_json(stdout, analizador);
+    return clases_to_file(stdout, analizador);
 }
 
 /**
@@ -138,7 +130,7 @@ int imprimir(const struct s_analizador *analizador)
  *  Escribe las clases de trafico en el archivo pasado por parametro en formato
  *  JSON
  */
-int clases_to_json(FILE* file, const struct s_analizador *analizador)
+int clases_to_file(FILE* file, const struct s_analizador *analizador)
 {
     int i;
     int cantidad = analizador->cant_clases;
