@@ -264,6 +264,7 @@ void test_coincide_stress(int cantidad_clases) {
     inet_aton("192.168.2.121", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 80;
+    x.direccion = ENTRANTE;
 
     for(i = 0; i < cantidad_clases; i++) {
         coincide(&a, &x);
@@ -400,6 +401,7 @@ void test_coincide_muchos_puertos() {
     x.puerto_origen = 12345;
     x.puerto_destino = 443;
     x.protocolo = IPPROTO_TCP;
+    x.direccion = SALIENTE;
 
     assert(coincide(&a, &x) == 1);
     assert(coincide(&b, &x) == 0);
@@ -555,6 +557,7 @@ void test_coincide_protocolo() {
     inet_aton("200.150.180.210", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 22;
+    x.direccion = SALIENTE;
     x.protocolo = IPPROTO_TCP;
 
     assert(coincide(&a, &x) == 1);
