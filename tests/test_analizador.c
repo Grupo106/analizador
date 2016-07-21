@@ -126,6 +126,7 @@ void test_coincide_subred() {
     inet_aton("200.150.180.210", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 80;
+    x.direccion = ENTRANTE;
 
     assert(coincide(&a, &x) == 1);
     assert(coincide(&b, &x) == 0);
