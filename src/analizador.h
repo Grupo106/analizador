@@ -104,8 +104,8 @@ int analizar_paquete(const struct s_analizador*, const struct paquete*);
  * de subred *mascara*.
  *
  * ### Parametros
- * * ip: Debe ser del tipo in_addr_t (campo s_addr de la estructura in_addr).
- * * red: Debe ser del tipo in_addr_t (campo s_addr de la estructura in_addr).
+ * * ip: Debe ser del tipo in_addr
+ * * red: Debe ser del tipo in_addr
  * * mascara: Debe estar en formato hexadecimal.
  *
  * Para comprobar que una direccion IP pertenece a una IP hay que hacer una
