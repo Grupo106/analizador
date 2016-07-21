@@ -112,6 +112,6 @@ int analizar_paquete(const struct s_analizador*, const struct paquete*);
  * operación AND con la máscara de subred y el resultado debe ser igual a la
  * dirección de red.
  */
-#define IN_NET(ip, red, mascara) ((ip & mascara) == red)
+#define IN_NET(ip, red, mascara) ((ip.s_addr & mascara) == red.s_addr)
 
 #endif /* ANALIZADOR_H */

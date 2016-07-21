@@ -34,16 +34,16 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
              * pertenecer a la clase.
              */
             paquete->direccion == ENTRANTE &&
-            IN_NET(paquete->origen.s_addr, /* origen */
-                   (clase->subredes_outside + i)->red.s_addr,
+            IN_NET(paquete->origen, /* origen */
+                   (clase->subredes_outside + i)->red,
                    (clase->subredes_outside + i)->mascara)
           ) || (
             /* si el paquete es saliente, la direccion de **destino** debe
              * pertenecer a la clase.
              */
             paquete->direccion == SALIENTE &&
-            IN_NET(paquete->destino.s_addr,
-                   (clase->subredes_outside + i)->red.s_addr,
+            IN_NET(paquete->destino,
+                   (clase->subredes_outside + i)->red,
                    (clase->subredes_outside + i)->mascara)
           )
         );
@@ -59,16 +59,16 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
              * pertenecer a la clase.
              */
             paquete->direccion == SALIENTE &&
-            IN_NET(paquete->origen.s_addr, /* origen */
-                   (clase->subredes_inside + i)->red.s_addr,
+            IN_NET(paquete->origen, /* origen */
+                   (clase->subredes_inside + i)->red,
                    (clase->subredes_inside + i)->mascara)
           ) || (
             /* si el paquete es entrante, la direccion de **destino** debe
              * pertenecer a la clase.
              */
             paquete->direccion == ENTRANTE &&
-            IN_NET(paquete->destino.s_addr,
-                   (clase->subredes_inside + i)->red.s_addr,
+            IN_NET(paquete->destino,
+                   (clase->subredes_inside + i)->red,
                    (clase->subredes_inside + i)->mascara)
           )
         );
