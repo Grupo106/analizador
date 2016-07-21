@@ -127,8 +127,8 @@ int obtener_paquetes(struct s_analizador* analizador,
 
     #pragma omp parallel for private(i, paquete)
     for(i = 0; i < cantidad; i++) {
-        paquete.origen.s_addr = htonl((paquetes + i)->ip_origen);
-        paquete.destino.s_addr = htonl((paquetes + i)->ip_destino);
+        paquete.ip_origen.s_addr = htonl((paquetes + i)->ip_origen);
+        paquete.ip_destino.s_addr = htonl((paquetes + i)->ip_destino);
         paquete.puerto_origen = (paquetes + i)->puerto_origen;
         paquete.puerto_destino = (paquetes + i)->puerto_destino;
         paquete.protocolo = (paquetes + i)->protocolo;

@@ -122,8 +122,8 @@ void test_coincide_subred() {
     b.subredes_outside->mascara = GET_MASCARA(16);
 
     /* creo paquete */
-    inet_aton("192.168.122.177", &(x.origen));
-    inet_aton("200.150.180.210", &(x.destino));
+    inet_aton("192.168.122.177", &(x.ip_origen));
+    inet_aton("200.150.180.210", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 80;
 
@@ -176,8 +176,8 @@ void test_coincide_muchas_subredes() {
     (b.subredes_outside + 1)->mascara = GET_MASCARA(25);
 
     /* creo paquete */
-    inet_aton("177.200.1.128", &(x.origen));
-    inet_aton("172.17.0.255", &(x.destino));
+    inet_aton("177.200.1.128", &(x.ip_origen));
+    inet_aton("172.17.0.255", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 80;
     x.direccion = SALIENTE;
@@ -229,8 +229,8 @@ void test_coincide_subred_origen_destino() {
     b.subredes_inside->mascara = GET_MASCARA(8);
 
     /* creo paquete */
-    inet_aton("192.168.1.1", &(x.origen));
-    inet_aton("192.168.0.121", &(x.destino));
+    inet_aton("192.168.1.1", &(x.ip_origen));
+    inet_aton("192.168.0.121", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 80;
     x.direccion = SALIENTE;
@@ -259,8 +259,8 @@ void test_coincide_stress(int cantidad_clases) {
     a.subredes_outside->mascara = GET_MASCARA(24);
 
     /* creo paquete */
-    inet_aton("192.168.1.1", &(x.origen));
-    inet_aton("192.168.2.121", &(x.destino));
+    inet_aton("192.168.1.1", &(x.ip_origen));
+    inet_aton("192.168.2.121", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 80;
 
@@ -321,8 +321,8 @@ void test_coincide_puerto() {
     c.puertos_outside->protocolo = IPPROTO_TCP;
 
     /* creo paquete */
-    inet_aton("192.168.122.177", &(x.origen));
-    inet_aton("200.150.180.210", &(x.destino));
+    inet_aton("192.168.122.177", &(x.ip_origen));
+    inet_aton("200.150.180.210", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 22;
     x.protocolo = IPPROTO_TCP;
@@ -394,8 +394,8 @@ void test_coincide_muchos_puertos() {
     (c.puertos_outside + 1)->protocolo = IPPROTO_TCP;
 
     /* creo paquete */
-    inet_aton("192.168.122.177", &(x.origen));
-    inet_aton("200.150.180.210", &(x.destino));
+    inet_aton("192.168.122.177", &(x.ip_origen));
+    inet_aton("200.150.180.210", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 443;
     x.protocolo = IPPROTO_TCP;
@@ -488,8 +488,8 @@ void test_coincide_puerto_origen_destino() {
     c.puertos_inside->protocolo = 0;
 
     /* creo paquete */
-    inet_aton("192.168.122.177", &(x.origen));
-    inet_aton("200.150.180.210", &(x.destino));
+    inet_aton("192.168.122.177", &(x.ip_origen));
+    inet_aton("200.150.180.210", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 443;
     x.protocolo = IPPROTO_TCP;
@@ -550,8 +550,8 @@ void test_coincide_protocolo() {
     c.puertos_outside->protocolo = IPPROTO_UDP;
 
     /* creo paquete */
-    inet_aton("192.168.122.177", &(x.origen));
-    inet_aton("200.150.180.210", &(x.destino));
+    inet_aton("192.168.122.177", &(x.ip_origen));
+    inet_aton("200.150.180.210", &(x.ip_destino));
     x.puerto_origen = 12345;
     x.puerto_destino = 22;
     x.protocolo = IPPROTO_TCP;
@@ -677,32 +677,32 @@ void test_analizar_paquete() {
     analizador.cant_clases = 3;
 
     /* creo paquetes */
-    inet_aton("1.1.1.1", &(paquetes[0].origen));
-    inet_aton("2.2.2.2", &(paquetes[0].destino));
+    inet_aton("1.1.1.1", &(paquetes[0].ip_origen));
+    inet_aton("2.2.2.2", &(paquetes[0].ip_destino));
     paquetes[0].puerto_origen = 1;
     paquetes[0].puerto_destino = 11;
     paquetes[0].bytes = 10;
     paquetes[0].direccion = SALIENTE;
     paquetes[0].protocolo = IPPROTO_TCP;
 
-    inet_aton("1.1.1.1", &(paquetes[1].origen));
-    inet_aton("3.3.3.3", &(paquetes[1].destino));
+    inet_aton("1.1.1.1", &(paquetes[1].ip_origen));
+    inet_aton("3.3.3.3", &(paquetes[1].ip_destino));
     paquetes[1].puerto_origen = 2;
     paquetes[1].puerto_destino = 12;
     paquetes[1].bytes = 10;
     paquetes[1].direccion = SALIENTE;
     paquetes[1].protocolo = IPPROTO_TCP;
 
-    inet_aton("2.2.2.2", &(paquetes[2].origen));
-    inet_aton("1.1.1.1", &(paquetes[2].destino));
+    inet_aton("2.2.2.2", &(paquetes[2].ip_origen));
+    inet_aton("1.1.1.1", &(paquetes[2].ip_destino));
     paquetes[2].puerto_origen = 11;
     paquetes[2].puerto_destino = 1;
     paquetes[2].bytes = 10;
     paquetes[2].direccion = ENTRANTE;
     paquetes[2].protocolo = IPPROTO_TCP;
 
-    inet_aton("8.8.8.8", &(paquetes[3].origen));
-    inet_aton("2.2.2.2", &(paquetes[3].destino));
+    inet_aton("8.8.8.8", &(paquetes[3].ip_origen));
+    inet_aton("2.2.2.2", &(paquetes[3].ip_destino));
     paquetes[3].puerto_origen = 53;
     paquetes[3].puerto_destino = 1;
     paquetes[3].bytes = 10;

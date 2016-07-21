@@ -34,7 +34,7 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
              * pertenecer a la clase.
              */
             paquete->direccion == ENTRANTE &&
-            IN_NET(paquete->origen, /* origen */
+            IN_NET(paquete->ip_origen, /* origen */
                    (clase->subredes_outside + i)->red,
                    (clase->subredes_outside + i)->mascara)
           ) || (
@@ -42,7 +42,7 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
              * pertenecer a la clase.
              */
             paquete->direccion == SALIENTE &&
-            IN_NET(paquete->destino,
+            IN_NET(paquete->ip_destino,
                    (clase->subredes_outside + i)->red,
                    (clase->subredes_outside + i)->mascara)
           )
@@ -59,7 +59,7 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
              * pertenecer a la clase.
              */
             paquete->direccion == SALIENTE &&
-            IN_NET(paquete->origen, /* origen */
+            IN_NET(paquete->ip_origen, /* origen */
                    (clase->subredes_inside + i)->red,
                    (clase->subredes_inside + i)->mascara)
           ) || (
@@ -67,7 +67,7 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
              * pertenecer a la clase.
              */
             paquete->direccion == ENTRANTE &&
-            IN_NET(paquete->destino,
+            IN_NET(paquete->ip_destino,
                    (clase->subredes_inside + i)->red,
                    (clase->subredes_inside + i)->mascara)
           )
