@@ -155,9 +155,9 @@ int obtener_clases(struct s_analizador *analizador)
     int i;
     EXEC SQL BEGIN DECLARE SECTION;
         const char *stmt = "SELECT id_clase, nombre, descripcion "
-                           "FROM clase_trafico";
+                           "FROM clase_trafico WHERE activa=TRUE";
         const char *count = "SELECT count(1) "
-                            "FROM clase_trafico";
+                            "FROM clase_trafico WHERE activa=TRUE";
         typedef struct {
             int id_clase;
             char nombre[LONG_NOMBRE];
@@ -208,7 +208,7 @@ int obtener_clases(struct s_analizador *analizador)
             "Clase por defecto para paquetes que no coinciden con ninguna otra"
             " clase de trafico instalada",
             LONG_DESCRIPCION);
-    
+
     /* cargo clases de trafico instaladas */
     for(i = 0; i < cantidad; i++) {
         clase = analizador->clases + i + 1; /* sumo uno por clase por defecto*/
@@ -246,9 +246,6 @@ void free_clase(struct clase *clase) {
  * ---------------------------------------------------------------------------
  *  Obtiene el array de subredes que componen la clase de trafico.
  *  Devuelve la cantidad de subredes que contiene el array
- *
- *  Carga tanto grupo A como grupo B.
- *
  */
 int obtener_subredes(struct clase* clase, char grupo)
 {
@@ -263,7 +260,7 @@ int obtener_subredes(struct clase* clase, char grupo)
                            "WHERE id_clase = ? "
                            "AND grupo = ?";
         const char *count = "SELECT count(1) "
-                            "FROM v_clase_cidr " 
+                            "FROM v_clase_cidr "
                             "WHERE id_clase = ? "
                             "AND grupo = ?";
         typedef struct {
@@ -333,6 +330,7 @@ int obtener_subredes(struct clase* clase, char grupo)
         } else if (it->prefijo < 32) {
             subred->mascara = GET_MASCARA(it->prefijo);
         }
+        subred->red.s_addr &= subred->mascara;
     }
 
     /* libero recursos */
@@ -346,10 +344,6 @@ int obtener_subredes(struct clase* clase, char grupo)
  * ---------------------------------------------------------------------------
  *  Obtiene el array de puertos que componen la clase de trafico.
  *  Devuelve la cantidad de puertos que contiene el array
- *
- *  Carga tanto grupo A como grupo B.
- *
- *  TODO: Falta cargar grupo B
  */
 int obtener_puertos(struct clase* clase, char grupo)
 {
@@ -362,7 +356,7 @@ int obtener_puertos(struct clase* clase, char grupo)
                             "WHERE id_clase = ? "
                             "AND grupo = ?";
         const char *count = "SELECT count(1) "
-                            "FROM v_clase_puerto " 
+                            "FROM v_clase_puerto "
                             "WHERE id_clase = ? "
                             "AND grupo = ?";
         typedef struct {
