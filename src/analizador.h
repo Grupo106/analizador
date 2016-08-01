@@ -15,6 +15,8 @@
 #include "paquete.h"
 #include "clase_trafico.h"
 
+#define PUNTOS_COINCIDENCIA_PUERTO 5
+
 /*
  * ESTRUCTURAS
  * ===========================================================================
@@ -41,6 +43,13 @@ struct s_analizador {
  * FUNCIONES
  * ===========================================================================
  */
+
+/*
+ * prefijo
+ * ---------------------------------------------------------------------------
+ *  Obtiene la cantidad de bits de la mascara de subred pasada por parametro.
+ */
+int prefijo(u_int32_t mascara);
 
 /**
  * coincide(clase, paquete)

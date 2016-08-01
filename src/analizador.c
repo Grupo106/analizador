@@ -4,12 +4,13 @@
 #include "analizador.h"
 
 
-/**
+/*
  * prefijo
  * ---------------------------------------------------------------------------
  *  Obtiene la cantidad de bits de la mascara de subred pasada por parametro.
  */
-int prefijo(int mascara) {
+int prefijo(u_int32_t mascara)
+{
     int i = 0;
     if(mascara == MASCARA_HOST) {
         return 32;
@@ -51,7 +52,7 @@ int coincide_subred(const struct paquete *paquete,
 
     while (!puntos && i < cantidad) {
         if (en_subred(ip, (subredes + i)))
-            puntos = prefijo((subredes + 1)->mascara) + 1;
+            puntos = prefijo((subredes + i)->mascara);
         i++;
     }
     return puntos;
@@ -69,7 +70,7 @@ int coincide_puerto(const struct paquete *paquete,
                     const struct puerto *puertos, int cantidad, int grupo)
 {
     int i = 0;
-    int puntos = cantidad == 0;
+    int coincide = cantidad == 0;
     int puerto;
 
     /* determino si voy a usar el puerto de origen o de destino del paquete
@@ -84,14 +85,16 @@ int coincide_puerto(const struct paquete *paquete,
     else if (grupo == GRUPO_INSIDE && paquete->direccion == SALIENTE)
         puerto = paquete->puerto_origen;
 
-    while (!puntos && i < cantidad) {
-        puntos = puerto == (puertos + i)->numero;
+    while (!coincide && i < cantidad) {
+        coincide = puerto == (puertos + i)->numero;
         /* comparo por protocolo. El protocolo es cero es comodin. */
-        puntos &= (puertos + i)->protocolo == 0 ||
+        coincide &= (puertos + i)->protocolo == 0 ||
                     paquete->protocolo == (puertos + i)->protocolo;
+        if (coincide)
+            return coincide + PUNTOS_COINCIDENCIA_PUERTO;
         i++;
     }
-    return puntos;
+    return coincide;
 }
 
 /**
@@ -187,6 +190,11 @@ int clases_to_file(FILE* file, const struct s_analizador *analizador)
 }
 
 
+/*
+ * sumar_bytes
+ * ---------------------------------------------------------------------------
+ *  Suma los bytes del paquete a la clase de trafico.
+ */
 void sumar_bytes(struct clase *clase, const struct paquete *paquete) {
     if (paquete->direccion == ENTRANTE) {
         #pragma omp atomic

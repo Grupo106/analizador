@@ -726,19 +726,129 @@ void test_analizar_paquete() {
     assert(clases[2].bytes_bajada == 0);
 }
 
+
+/*
+ * test_mejor_coincidencia
+ * --------------------------------------------------------------------------
+ *  Prueba la funcion analizar_paquete. Compara un paquete con las clases de
+ *  trafico instaladas. Debe sumar bytes a la clase con mejor coincidencia
+ *
+ *  En este caso de prueba se establecen los siguiente valores:
+ *
+ *  clase trafico   | direccion de red | puerto
+ *  =============== + ================ + =======
+ *   default        |                  |
+ * ---------------- + ---------------- + -------
+ *   c1             | i: 1.0.0.0/8     |
+ * ---------------- + ---------------- + -------
+ *   c2             |                  | o: 12
+ * ---------------- + ---------------- + -------
+ *   c3             | i: 1.0.0.0/8     | o: 12
+ *
+ *  paquete | origen  | destino | p_origen | p_dest | bytes | direccion
+ *  ======= + ======= +======== + ======== + ====== + ===== | ==========
+ *   p0     | 1.1.1.1 | 2.2.2.2 |  1       |  12    |  10   | SALIENTE
+ *
+ *
+ *  ### Resultado esperado
+ *
+ *  clase trafico   | subida | bajada
+ *  =============== + ====== + =======
+ *   default        | 0      | 0
+ *  --------------- + ------ + ------
+ *   c1             | 0      | 0
+ *  --------------- + ------ + ------
+ *   c2             | 0      | 0
+ *  --------------- + ------ + ------
+ *   c3             | 10     | 0
+ */
+void test_mejor_coincidencia() {
+    struct s_analizador analizador;
+    struct clase clases[4];
+    struct paquete paquete;
+
+    /* creo clases de trafico */
+    init_clase(clases);
+    strncpy(clases[0].nombre, "Default", LONG_NOMBRE);
+
+    init_clase(clases + 1);
+    strncpy(clases[1].nombre, "c1", LONG_NOMBRE);
+    clases[1].cant_subredes_inside = 1;
+    clases[1].subredes_inside = malloc(sizeof(struct subred));
+    inet_aton("1.0.0.0", &(clases[1].subredes_inside->red));
+    clases[1].subredes_inside->mascara = GET_MASCARA(8);
+
+    init_clase(clases + 2);
+    strncpy(clases[2].nombre, "c2", LONG_NOMBRE);
+    clases[2].cant_puertos_outside = 1;
+    clases[2].puertos_outside = malloc(sizeof(struct puerto));
+    clases[2].puertos_outside->numero = 12;
+    clases[2].puertos_outside->protocolo = 0;
+
+    init_clase(clases + 3);
+    strncpy(clases[3].nombre, "c3", LONG_NOMBRE);
+    clases[3].cant_subredes_inside = 1;
+    clases[3].subredes_inside = malloc(sizeof(struct subred));
+    inet_aton("1.0.0.0", &(clases[3].subredes_inside->red));
+    clases[3].subredes_inside->mascara = GET_MASCARA(8);
+    clases[3].cant_puertos_outside = 1;
+    clases[3].puertos_outside = malloc(sizeof(struct puerto));
+    clases[3].puertos_outside->numero = 12;
+    clases[3].puertos_outside->protocolo = 0;
+
+    analizador.clases = clases;
+    analizador.cant_clases = 4;
+
+    /* creo paquetes */
+    inet_aton("1.1.1.1", &(paquete.ip_origen));
+    inet_aton("2.2.2.2", &(paquete.ip_destino));
+    paquete.puerto_origen = 1;
+    paquete.puerto_destino = 12;
+    paquete.bytes = 10;
+    paquete.direccion = SALIENTE;
+    paquete.protocolo = IPPROTO_TCP;
+
+    /* comparo paquetes con las clases de trafico */
+    analizar_paquete(&analizador, &paquete);
+
+    /* Verifico que el resultado del analisis sea correcto */
+    assert(clases[0].bytes_subida == 0);
+    assert(clases[0].bytes_bajada == 0);
+    assert(clases[1].bytes_subida == 0);
+    assert(clases[1].bytes_bajada == 0);
+    assert(clases[2].bytes_subida == 0);
+    assert(clases[2].bytes_bajada == 0);
+    assert(clases[3].bytes_subida == 10);
+    assert(clases[3].bytes_bajada == 0);
+}
+
+/*
+ * test_prefijo
+ * --------------------------------------------------------------------------
+ *  Prueba que la funcion prefijo devuelva la cantidad de bits del prefijo.
+ */
+void test_prefijo() {
+    for (int i = 0; i < 31; i++)
+        assert(prefijo(GET_MASCARA(i)) == i);
+
+    assert(prefijo(MASCARA_HOST) == 32);
+}
+
 int main() {
-    test_mascara();
-    test_in_net();
-    test_coincide_subred();
-    test_coincide_muchas_subredes();
-    test_coincide_subred_origen_destino();
-    //test_coincide_stress(50000000);
-    test_coincide_puerto();
-    test_coincide_muchos_puertos();
-    test_coincide_puerto_origen_destino();
-    test_coincide_protocolo();
-    test_imprimir();
-    test_analizar_paquete();
+    //test_mascara();
+    //test_in_net();
+    //test_coincide_subred();
+    //test_coincide_muchas_subredes();
+    //test_coincide_subred_origen_destino();
+    ////test_coincide_stress(50000000);
+    //test_coincide_puerto();
+    //test_coincide_muchos_puertos();
+    //test_coincide_puerto_origen_destino();
+    //test_coincide_protocolo();
+    //test_imprimir();
+    //test_analizar_paquete();
+    //test_prefijo();
+    test_mejor_coincidencia();
     printf("SUCCESS\n");
     return 0;
 }

@@ -50,7 +50,7 @@ struct subred {
     struct in_addr red; /* Direccion de red (la seccion de host debe estar en
                          * cero)
                          */
-    in_addr_t mascara; /* Mascara de subred en formato hexadecimal */
+    u_int32_t mascara; /* Mascara de subred en formato hexadecimal */
 };
 
 /**
