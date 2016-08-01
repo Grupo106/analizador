@@ -4,37 +4,72 @@
 #include "analizador.h"
 
 
-int coincide_subred(struct paquete *paquete,
-                    struct subred *subredes, int cantidad, int grupo)
+/**
+ * prefijo
+ * ---------------------------------------------------------------------------
+ *  Obtiene la cantidad de bits de la mascara de subred pasada por parametro.
+ */
+int prefijo(int mascara) {
+    int i = 0;
+    if(mascara == MASCARA_HOST) {
+        return 32;
+    }
+    while (i < 32) {
+        if(mascara == GET_MASCARA(i))
+            return i;
+        i++;
+    }
+    return -1;
+}
+
+/**
+ * coincide_subred
+ * ---------------------------------------------------------------------------
+ *  Compara las ips del paquete con un array de subredes de la clase de
+ *  trafico.
+ *
+ *  Devuelve puntaje de coincidencia. A mayor puntaje, mejor coincidencia
+ */
+int coincide_subred(const struct paquete *paquete,
+                    const struct subred *subredes, int cantidad, int grupo)
 {
     int i = 0;
-    int coincide = 0;
-    struct in_addr *ip;
+    int puntos = cantidad == 0;
+    struct in_addr ip;
 
     /* determino si voy a usar la ip de origen o de destino del paquete para
      * la comparacion
      */
     if (grupo == GRUPO_OUTSIDE && paquete->direccion == ENTRANTE)
-        ip = &(paquete->ip_origen);
+        ip = paquete->ip_origen;
     else if (grupo == GRUPO_OUTSIDE && paquete->direccion == SALIENTE)
-        ip = &(paquete->ip_destino);
+        ip = paquete->ip_destino;
     else if (grupo == GRUPO_INSIDE && paquete->direccion == ENTRANTE)
-        ip = &(paquete->ip_destino);
+        ip = paquete->ip_destino;
     else if (grupo == GRUPO_INSIDE && paquete->direccion == SALIENTE)
-        ip = &(paquete->ip_origen);
+        ip = paquete->ip_origen;
 
-    while (!coincide && i < cantidad) {
-        coincide = en_subred((*ip), (subredes + i));
+    while (!puntos && i < cantidad) {
+        if (en_subred(ip, (subredes + i)))
+            puntos = prefijo((subredes + 1)->mascara) + 1;
         i++;
     }
-    return coincide;
+    return puntos;
 }
 
+/**
+ * coincide_puerto
+ * ---------------------------------------------------------------------------
+ *  Compara los puertos del paquete con un array de puertos de la clase de
+ *  trafico.
+ *
+ *  Devuelve puntaje de coincidencia. A mayor puntaje, mejor coincidencia
+ */
 int coincide_puerto(const struct paquete *paquete,
                     const struct puerto *puertos, int cantidad, int grupo)
 {
     int i = 0;
-    int coincide = 0;
+    int puntos = cantidad == 0;
     int puerto;
 
     /* determino si voy a usar el puerto de origen o de destino del paquete
@@ -49,14 +84,14 @@ int coincide_puerto(const struct paquete *paquete,
     else if (grupo == GRUPO_INSIDE && paquete->direccion == SALIENTE)
         puerto = paquete->puerto_origen;
 
-    while (!coincide && i < cantidad) {
-        coincide = puerto == (puertos + i)->numero;
+    while (!puntos && i < cantidad) {
+        puntos = puerto == (puertos + i)->numero;
         /* comparo por protocolo. El protocolo es cero es comodin. */
-        coincide &= (puertos + i)->protocolo == 0 ||
+        puntos &= (puertos + i)->protocolo == 0 ||
                     paquete->protocolo == (puertos + i)->protocolo;
         i++;
     }
-    return coincide;
+    return puntos;
 }
 
 /**
@@ -64,6 +99,8 @@ int coincide_puerto(const struct paquete *paquete,
  * ---------------------------------------------------------------------------
  *  Compara un paquete con una clase de trafico. Si el paquete coincide con la
  *  clase devuelve 1, caso contrario devuelve cero
+ *
+ *  Devuelve puntaje de coincidencia. A mayor puntaje, mejor coincidencia
  */
 int coincide(const struct clase *clase, const struct paquete *paquete)
 {
@@ -76,35 +113,29 @@ int coincide(const struct clase *clase, const struct paquete *paquete)
      * encontro ese parametro, ya que al final se hace una operacion AND entre
      * todos los flags.
      */
-    int redes_O = !(clase->cant_subredes_outside > 0);
-    int redes_I = !(clase->cant_subredes_inside > 0);
-    int puerto_O = !(clase->cant_puertos_outside > 0);
-    int puerto_I = !(clase->cant_puertos_inside > 0);
+    int redes_O = coincide_subred(paquete,
+                                  clase->subredes_outside,
+                                  clase->cant_subredes_outside,
+                                  GRUPO_OUTSIDE);
+    int redes_I = coincide_subred(paquete,
+                                  clase->subredes_inside,
+                                  clase->cant_subredes_inside,
+                                  GRUPO_INSIDE);
+    int puerto_O = coincide_puerto(paquete,
+                                   clase->puertos_outside,
+                                   clase->cant_puertos_outside,
+                                   GRUPO_OUTSIDE);
+    int puerto_I = coincide_puerto(paquete,
+                                   clase->puertos_inside,
+                                   clase->cant_puertos_inside,
+                                   GRUPO_INSIDE);
 
-    /* busco coincidencia en subredes outside */
-    redes_O = redes_O || coincide_subred(paquete,
-                                         clase->subredes_outside,
-                                         clase->cant_subredes_outside,
-                                         GRUPO_OUTSIDE);
-    /* busco coincidencia en subredes inside */
-    redes_I = redes_I || coincide_subred(paquete,
-                                         clase->subredes_inside,
-                                         clase->cant_subredes_inside,
-                                         GRUPO_INSIDE);
-    /* busco coincidencia en puertos outside */
-    puerto_O = puerto_O || coincide_puerto(paquete,
-                                             clase->puertos_outside,
-                                             clase->cant_puertos_outside,
-                                             GRUPO_OUTSIDE);
-    /* busco coincidencia en puertos inside */
-    puerto_I = puerto_I || coincide_puerto(paquete,
-                                             clase->puertos_inside,
-                                             clase->cant_puertos_inside,
-                                             GRUPO_INSIDE);
-
-    /* solamente devuelve verdadero si todos los parametros que se compararon
+    /* solamente devuelve el puntaje si todos los parametros que se compararon
      * son verdaderos. */
-    return redes_O && redes_I && puerto_O && puerto_I;
+    if (redes_O && redes_I && puerto_O && puerto_I)
+        return redes_O + redes_I + puerto_O + puerto_I;
+    else
+        return 0;
 }
 
 /**
@@ -155,49 +186,56 @@ int clases_to_file(FILE* file, const struct s_analizador *analizador)
     return 0;
 }
 
+
+void sumar_bytes(struct clase *clase, const struct paquete *paquete) {
+    if (paquete->direccion == ENTRANTE) {
+        #pragma omp atomic
+        clase->bytes_bajada += paquete->bytes;
+    }
+    else if (paquete->direccion == SALIENTE) {
+        #pragma omp atomic
+        clase->bytes_subida += paquete->bytes;
+    }
+}
+
+
 /**
  * analizar_paquete(s_analizador, paquete)
  * --------------------------------------------------------------------------
  *  Compara un paquete con las clases de trafico instaladas. En caso que no
  *  coincida con ninuna, se agrega a la clase por defecto.
  *
+ *  Se agregan los bytes a la clase con la mejor coincidencia.
+ *
  *  Devuelve 1 en caso que haya coincidencia con alguna clase de trafico, 0 en
  *  caso de que se haya agregado el paquete a la clase por defecto.
  */
 int analizar_paquete(const struct s_analizador* analizador,
-        const struct paquete* paquete)
+                     const struct paquete* paquete)
 {
-    int coincidencias = 0; /* si el paquete tuvo alguna coincidencia. */
-    int cmp = 0; /* almacena el resultado de la comparacion con la clase */
+    int mayor_puntaje = 0;
+    struct clase *mejor_coincidencia = NULL;
+    int puntaje = 0; /* almacena el resultado de la comparacion con la clase */
     int i = 0; /* iterador de clases */
 
     /* Por defecto, la primer clase es la clase por default, por lo tanto
      * empiezo a comparar con la clase 1.
      */
     for (i = 1; i < analizador->cant_clases; i++) {
-        cmp = coincide(analizador->clases + i, paquete);
-        coincidencias |= cmp;
-        if (cmp) {
-            if (paquete->direccion == ENTRANTE) {
-                #pragma omp atomic
-                (analizador->clases + i)->bytes_bajada += paquete->bytes;
-            } /* paquete entrante */
-            else {
-                #pragma omp atomic
-                (analizador->clases + i)->bytes_subida += paquete->bytes;
-            } /* paquete saliente*/
+        puntaje = coincide(analizador->clases + i, paquete);
+        if (puntaje > mayor_puntaje) {
+            mayor_puntaje = puntaje;
+            mejor_coincidencia = analizador->clases + i;
         }
     }
-    /* si no hubo coincidencia con ninguna clase lo agrego a la clase default*/
-    if(!coincidencias) {
-        if(paquete->direccion == ENTRANTE)
-            #pragma omp atomic
-            analizador->clases->bytes_bajada += paquete->bytes;
-        else
-            #pragma omp atomic
-            analizador->clases->bytes_subida += paquete->bytes;
-    }
-    /* devuelvo si existio coincidencias con alguna clase de trafico que no sea
-     * la default. */
-    return coincidencias;
+
+    /* con coincidencia */
+    if(mayor_puntaje > 0)
+        sumar_bytes(mejor_coincidencia, paquete);
+
+    /* sin coincidencia */
+    else
+        sumar_bytes((analizador->clases), paquete);
+
+    return mayor_puntaje > 0;
 }

@@ -21,7 +21,7 @@
                               * la estructura de clase de trafico sea potencia
                               * de dos.
                               */
-#define MASCARA_HOST htonl(0xffffffff); /* Mascara de subred para hosts con
+#define MASCARA_HOST htonl(0xffffffff) /* Mascara de subred para hosts con
                                          * todos los bits en uno.
                                          */
 /* identificador para grupos de redes o puertos de host ubicados en la red 

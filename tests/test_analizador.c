@@ -128,7 +128,7 @@ void test_coincide_subred() {
     x.puerto_destino = 80;
     x.direccion = ENTRANTE;
 
-    assert(coincide(&a, &x) == 1);
+    assert(coincide(&a, &x) > 0);
     assert(coincide(&b, &x) == 0);
 }
 
@@ -183,7 +183,7 @@ void test_coincide_muchas_subredes() {
     x.puerto_destino = 80;
     x.direccion = SALIENTE;
 
-    assert(coincide(&a, &x) == 1);
+    assert(coincide(&a, &x) > 0);
     assert(coincide(&b, &x) == 0);
 }
 
@@ -236,7 +236,7 @@ void test_coincide_subred_origen_destino() {
     x.puerto_destino = 80;
     x.direccion = SALIENTE;
 
-    assert(coincide(&a, &x) == 1);
+    assert(coincide(&a, &x) > 0);
     assert(coincide(&b, &x) == 0);
 }
 
@@ -330,7 +330,7 @@ void test_coincide_puerto() {
     x.protocolo = IPPROTO_TCP;
     x.direccion = SALIENTE;
 
-    assert(coincide(&a, &x) == 1);
+    assert(coincide(&a, &x) > 0);
     assert(coincide(&b, &x) == 0);
     assert(coincide(&c, &x) == 0);
 }
@@ -403,7 +403,7 @@ void test_coincide_muchos_puertos() {
     x.protocolo = IPPROTO_TCP;
     x.direccion = SALIENTE;
 
-    assert(coincide(&a, &x) == 1);
+    assert(coincide(&a, &x) > 0);
     assert(coincide(&b, &x) == 0);
     assert(coincide(&c, &x) == 0);
 }
@@ -498,7 +498,7 @@ void test_coincide_puerto_origen_destino() {
     x.protocolo = IPPROTO_TCP;
     x.direccion = SALIENTE;
 
-    assert(coincide(&a, &x) == 1);
+    assert(coincide(&a, &x) > 0);
     assert(coincide(&b, &x) == 0);
     assert(coincide(&c, &x) == 0);
 }
@@ -560,7 +560,7 @@ void test_coincide_protocolo() {
     x.direccion = SALIENTE;
     x.protocolo = IPPROTO_TCP;
 
-    assert(coincide(&a, &x) == 1);
+    assert(coincide(&a, &x) > 0);
     assert(coincide(&b, &x) == 0);
     assert(coincide(&c, &x) == 0);
 }
@@ -652,7 +652,7 @@ void test_imprimir() {
  *  --------------- + ------ + ------
  *   c1             | 20     | 10
  *  --------------- + ------ + ------
- *   c2             | 10     | 0
+ *   c2             | 0      | 0
  */
 void test_analizar_paquete() {
     struct s_analizador analizador;
@@ -722,7 +722,7 @@ void test_analizar_paquete() {
     assert(clases[0].bytes_bajada == 10);
     assert(clases[1].bytes_subida == 20);
     assert(clases[1].bytes_bajada == 10);
-    assert(clases[2].bytes_subida == 10);
+    assert(clases[2].bytes_subida == 0);
     assert(clases[2].bytes_bajada == 0);
 }
 
@@ -732,7 +732,7 @@ int main() {
     test_coincide_subred();
     test_coincide_muchas_subredes();
     test_coincide_subred_origen_destino();
-    test_coincide_stress(50000000);
+    //test_coincide_stress(50000000);
     test_coincide_puerto();
     test_coincide_muchos_puertos();
     test_coincide_puerto_origen_destino();
