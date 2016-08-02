@@ -36,7 +36,7 @@ int coincide_subred(const struct paquete *paquete,
 {
     int i = 0;
     int puntos = cantidad == 0;
-    struct in_addr ip;
+    struct in_addr ip = paquete->ip_destino;
 
     /* determino si voy a usar la ip de origen o de destino del paquete para
      * la comparacion
