@@ -12,11 +12,11 @@
 int prefijo(u_int32_t mascara)
 {
     int i = 0;
-    if(mascara == MASCARA_HOST) {
+    if (mascara == MASCARA_HOST) {
         return 32;
     }
     while (i < 32) {
-        if(mascara == GET_MASCARA(i))
+        if (mascara == GET_MASCARA(i))
             return i;
         i++;
     }
@@ -238,7 +238,7 @@ int analizar_paquete(const struct s_analizador* analizador,
         }
     }
 
-    if(mayor_puntaje > 0) {
+    if (mayor_puntaje > 0) {
         /* con coincidencia */
         sumar_bytes(mejor_coincidencia, paquete);
     } else {
