@@ -238,12 +238,11 @@ int analizar_paquete(const struct s_analizador* analizador,
         }
     }
 
-    /* con coincidencia */
     if(mayor_puntaje > 0) {
+        /* con coincidencia */
         sumar_bytes(mejor_coincidencia, paquete);
-
-    /* sin coincidencia */
     } else {
+        /* sin coincidencia */
         sumar_bytes(clase_default, paquete);
     }
 
