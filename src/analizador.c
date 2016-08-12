@@ -35,6 +35,9 @@ int coincide_subred(const struct paquete *paquete,
                     const struct subred *subredes, int cantidad, int grupo)
 {
     int i = 0;
+    /* por defecto si la clase no especifica subredes, asumo coincidencia y
+     * asigna un punto.
+     */
     int puntos = cantidad == 0;
     struct in_addr ip = paquete->ip_destino;
 
@@ -70,6 +73,9 @@ int coincide_puerto(const struct paquete *paquete,
                     const struct puerto *puertos, int cantidad, int grupo)
 {
     int i = 0;
+    /* por defecto si la clase no especifica puertos, asumo coincidencia y
+     * asigna un punto.
+     */
     int coincide = cantidad == 0;
     int puerto;
 
@@ -107,15 +113,6 @@ int coincide_puerto(const struct paquete *paquete,
  */
 int coincide(const struct clase *clase, const struct paquete *paquete)
 {
-    /*
-     * Estas variables son banderas que se indican si un parametro del paquete
-     * coincide con la clase
-     *
-     * Si esta en 1 significa que se encontro ese parametro en el paquete. Por
-     * defecto, si la clase no especifica ese parametro, se asume que se
-     * encontro ese parametro, ya que al final se hace una operacion AND entre
-     * todos los flags.
-     */
     int redes_O = coincide_subred(paquete,
                                   clase->subredes_outside,
                                   clase->cant_subredes_outside,
@@ -223,27 +220,32 @@ int analizar_paquete(const struct s_analizador* analizador,
 {
     int mayor_puntaje = 0;
     struct clase *mejor_coincidencia = NULL;
+    struct clase *clases = analizador->cant_clases > 0 ?
+                           analizador->clases + 1 :
+                           NULL;
+    /* Por defecto, la primer clase es la clase por default. */
+    struct clase *clase_default = analizador->cant_clases > 0 ?
+                                  analizador->clases :
+                                  NULL;
     int puntaje = 0; /* almacena el resultado de la comparacion con la clase */
     int i = 0; /* iterador de clases */
 
-    /* Por defecto, la primer clase es la clase por default, por lo tanto
-     * empiezo a comparar con la clase 1.
-     */
-    for (i = 1; i < analizador->cant_clases; i++) {
-        puntaje = coincide(analizador->clases + i, paquete);
+    for (i = 0; i < analizador->cant_clases - 1; i++) {
+        puntaje = coincide(clases + i, paquete);
         if (puntaje > mayor_puntaje) {
             mayor_puntaje = puntaje;
-            mejor_coincidencia = analizador->clases + i;
+            mejor_coincidencia = clases + i;
         }
     }
 
     /* con coincidencia */
-    if(mayor_puntaje > 0)
+    if(mayor_puntaje > 0) {
         sumar_bytes(mejor_coincidencia, paquete);
 
     /* sin coincidencia */
-    else
-        sumar_bytes((analizador->clases), paquete);
+    } else {
+        sumar_bytes(clase_default, paquete);
+    }
 
     return mayor_puntaje > 0;
 }
