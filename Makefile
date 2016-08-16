@@ -2,7 +2,7 @@
 BANNER = "$(PROGRAM) - Netcop - Universidad Nacional de La Matanza. 2016"
 
 # Nombre del programa
-PROGRAM := analizador
+PROGRAM := analizar
 
 # Directorios
 # ---------------------------------------------------------------------------
