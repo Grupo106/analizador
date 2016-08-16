@@ -835,19 +835,19 @@ void test_prefijo() {
 }
 
 int main() {
-    //test_mascara();
-    //test_in_net();
-    //test_coincide_subred();
-    //test_coincide_muchas_subredes();
-    //test_coincide_subred_origen_destino();
-    ////test_coincide_stress(50000000);
-    //test_coincide_puerto();
-    //test_coincide_muchos_puertos();
-    //test_coincide_puerto_origen_destino();
-    //test_coincide_protocolo();
-    //test_imprimir();
-    //test_analizar_paquete();
-    //test_prefijo();
+    test_mascara();
+    test_in_net();
+    test_coincide_subred();
+    test_coincide_muchas_subredes();
+    test_coincide_subred_origen_destino();
+    test_coincide_stress(50000000);
+    test_coincide_puerto();
+    test_coincide_muchos_puertos();
+    test_coincide_puerto_origen_destino();
+    test_coincide_protocolo();
+    test_imprimir();
+    test_analizar_paquete();
+    test_prefijo();
     test_mejor_coincidencia();
     printf("SUCCESS\n");
     return 0;
