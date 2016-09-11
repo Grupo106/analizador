@@ -16,6 +16,7 @@
 #include "clase_trafico.h"
 
 #define PUNTOS_COINCIDENCIA_PUERTO 5
+#define LEN_ISO8601 32
 
 /*
  * ESTRUCTURAS
@@ -33,6 +34,9 @@ struct s_analizador {
     time_t tiempo_inicio;
     /* valor mayor del intervalo de tiempo de paquetes a analizar. */
     time_t tiempo_fin;
+    /* inicio y fin del intervalo en formato ISO8601*/
+    char inicio[LEN_ISO8601];
+    char fin[LEN_ISO8601];
     /* cantidad de clases de clases de trafico. */
     int cant_clases;
     /* array de clases de trafico. */

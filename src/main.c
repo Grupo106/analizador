@@ -160,7 +160,7 @@ static void ayuda() {
                                      "analizarán los paquetes\n"
            "  inicio fin             Intervalo de tiempo en los que se "
                                      "analizaran los paquetes en formato "
-                                     "unixtime."
+                                     "ISO8601."
            "\n%s\n"
            , PROGRAM, DEFAULT_SEGUNDOS, COPYLEFT);
 }
@@ -177,13 +177,13 @@ static void ayuda() {
  *   * sin parametros: analiza los paquetes recibidos luego de DEFAULT_SEGUNDOS
  *   * un parametro numerico: se crea intervalo entre la cantidad segundos
  *                            pasada por parametro y el tiempo actual
- *   * dos parametros numericos: intervalo en formato unixtime (cantidad de
- *                               segundos desde el 1 de enero de 1970)
+ *   * dos parametros string: intervalo en formato ISO8601
  */
 static void argumentos(int argc, const char* argv[], struct s_analizador *cfg)
 {
     unsigned int aux;
     /* inicio los valores por defecto */
+    memset(cfg, 0, sizeof(struct s_analizador));
     cfg->tiempo_inicio = time(NULL) - DEFAULT_SEGUNDOS;
     cfg->tiempo_fin = time(NULL);
     if (argc == 2) {
@@ -201,7 +201,7 @@ static void argumentos(int argc, const char* argv[], struct s_analizador *cfg)
             exit(EXIT_SUCCESS);
         }
 
-        /* segundos */
+        /* cantidad de segundos a analizar */
         if(sscanf(argv[1], "%u", &(aux)) != 1) {
             fprintf(stderr, "%s: Parámetro desconocido\n", argv[1]);
             ayuda();
@@ -209,19 +209,9 @@ static void argumentos(int argc, const char* argv[], struct s_analizador *cfg)
         }
         cfg->tiempo_inicio = time(NULL) - aux;
     } else if (argc == 3) {
-        /* intervalo */
-        if(sscanf(argv[1], "%u", &(aux)) != 1) {
-            fprintf(stderr, "%s: Parámetro desconocido\n", argv[1]);
-            ayuda();
-            exit(EXIT_FAILURE);
-        }
-        cfg->tiempo_inicio = aux;
-        if(sscanf(argv[2], "%u", &(aux)) != 1) {
-            fprintf(stderr, "%s: Parámetro desconocido\n", argv[2]);
-            ayuda();
-            exit(EXIT_FAILURE);
-        }
-        cfg->tiempo_fin = aux;
+        /* intervalo ISO8601 */
+        strncpy(cfg->inicio, argv[1], LEN_ISO8601);
+        strncpy(cfg->fin, argv[2], LEN_ISO8601);
     } else if (argc > 3) {
         ayuda();
     }

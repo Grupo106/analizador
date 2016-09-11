@@ -4,6 +4,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <arpa/inet.h>
+#include <string.h>
 
 #include "bd.h"
 #include "paquete.h"
@@ -62,20 +63,29 @@ int obtener_paquetes(struct s_analizador* analizador,
 {
     struct paquete paquete;
     int i;
+    int is_iso8601; /* flag que indica cuando usar iso8601 */
     /* declaracion de variables usadas en postgres */
     EXEC SQL BEGIN DECLARE SECTION;
-        const char *stmt = "SELECT ip_origen, ip_destino, puerto_origen, "
-                                  "puerto_destino, protocolo, bytes, "
-                                  "direccion "
-                           "FROM paquetes "
-                           "WHERE hora_captura "
-                           "BETWEEN to_timestamp(?) "
-                           "AND to_timestamp(?)";
+        const char *unixtime = "SELECT ip_origen, ip_destino, puerto_origen, "
+                                      "puerto_destino, protocolo, bytes, "
+                                      "direccion "
+                               "FROM paquetes "
+                               "WHERE hora_captura "
+                               "BETWEEN to_timestamp(?) "
+                               "AND to_timestamp(?)";
         const char *count = "SELECT count(1)"
                             "FROM paquetes "
                             "WHERE hora_captura "
                             "BETWEEN to_timestamp(?) "
                             "AND to_timestamp(?)";
+        const char *iso8601 = "SELECT ip_origen, ip_destino, puerto_origen, "
+                                     "puerto_destino, protocolo, bytes, "
+                                     "direccion "
+                              "FROM paquetes "
+                              "WHERE hora_captura BETWEEN ? AND ?";
+        const char *count8601 = "SELECT count(1)"
+                                "FROM paquetes "
+                                "WHERE hora_captura BETWEEN ? AND ?";
         typedef struct {
             int ip_origen;
             int ip_destino;
@@ -88,10 +98,10 @@ int obtener_paquetes(struct s_analizador* analizador,
         t_paquete *paquetes;
         int cantidad;
         long int t_min, t_max; /* intervalo de analisis */
+        char inicio[LEN_ISO8601], fin[LEN_ISO8601]; /* intervalo iso8601 */
     EXEC SQL END DECLARE SECTION;
 
-    t_min = analizador->tiempo_inicio;
-    t_max = analizador->tiempo_fin;
+
     syslog(LOG_DEBUG,
            "Se analizaran paquetes capturados desde %s",
            ctime(&(analizador->tiempo_inicio)));
@@ -99,13 +109,23 @@ int obtener_paquetes(struct s_analizador* analizador,
            "Se analizaran paquetes capturados hasta %s",
            ctime(&(analizador->tiempo_fin)));
 
+    is_iso8601 = strlen(analizador->inicio) &&
+                 strlen(analizador->fin);
 
     /* preparo consultas */
-    EXEC SQL PREPARE stmt1 FROM :stmt;
-    EXEC SQL PREPARE count1 FROM :count;
-
-    /* obtengo la cantidad de filas necesarias */
-    EXEC SQL EXECUTE count1 INTO :cantidad USING :t_min, :t_max;
+    if (is_iso8601) {
+        strcpy(inicio, analizador->inicio);
+        strcpy(fin, analizador->fin);
+        EXEC SQL PREPARE stmt1 FROM :iso8601;
+        EXEC SQL PREPARE count1 FROM :count8601;
+        EXEC SQL EXECUTE count1 INTO :cantidad USING :inicio, :fin;
+    } else {
+        t_min = analizador->tiempo_inicio;
+        t_max = analizador->tiempo_fin;
+        EXEC SQL PREPARE stmt1 FROM :unixtime;
+        EXEC SQL PREPARE count1 FROM :count;
+        EXEC SQL EXECUTE count1 INTO :cantidad USING :t_min, :t_max;
+    }
 
     /* obtengo la memoria necesaria para cargar todas las filas e inicializo la
      * seccion de memoria con ceros.
@@ -123,7 +143,11 @@ int obtener_paquetes(struct s_analizador* analizador,
     memset(paquetes, 0, sizeof(t_paquete) * cantidad);
 
     /* obtengo los paquetes */
-    EXEC SQL EXECUTE stmt1 INTO :paquetes USING :t_min, :t_max;
+    if (is_iso8601) {
+        EXEC SQL EXECUTE stmt1 INTO :paquetes USING :inicio, :fin;
+    } else {
+        EXEC SQL EXECUTE stmt1 INTO :paquetes USING :t_min, :t_max;
+    }
 
     #pragma omp parallel for private(i, paquete)
     for(i = 0; i < cantidad; i++) {
