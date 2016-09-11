@@ -9,7 +9,7 @@ Analizador
 Funcionalidades
 ------------------------------------------------------
 * Compara tráfico capturado con las clases de tráfico instaladas.
-* Genera JSON como resultado de la captura en la salida estándar. 
+* Genera JSON como resultado de la captura en la salida estándar.
 
 Dependencias
 -------------------------------------------------------
@@ -37,15 +37,15 @@ Uso
 ```
 Uso: analizar [-h] | [-v] | [segundos] | [inicio fin]
 
-Este programa compara las clases de trafico intaladas con los paquetes capturados 
-en un intervalo de tiempo especifico. Si no se especifica ningun parametro, se 
+Este programa compara las clases de trafico intaladas con los paquetes capturados
+en un intervalo de tiempo especifico. Si no se especifica ningun parametro, se
 analizaran los paquetes recibidos desde los ultimos 60 segundos.
 
 Parametros:
   -h, --help             Muestra esta ayuda.
   -v, --version          Muestra numero de version.
   segundos               Cantidad de segundos desde que se analizarán los paquetes
-  inicio fin             Intervalo de tiempo en los que se analizaran los paquetes en formato unixtime.
+  inicio fin             Intervalo de tiempo en los que se analizaran los paquetes en formato ISO8601.
 (c) Netcop 2016 - Universidad Nacional de la Matanza
 ```
 
