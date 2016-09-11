@@ -158,6 +158,7 @@ int clases_to_file(FILE* file, const struct s_analizador *analizador)
 {
     int i;
     int cantidad = analizador->cant_clases;
+    int cantidad_procesada = 0;
     struct clase* clases = analizador->clases;
     /* inicio array */
     fprintf(file, "[\n");
@@ -166,19 +167,21 @@ int clases_to_file(FILE* file, const struct s_analizador *analizador)
         /* evito imprimir clases sin bytes */
         if ((clases + i)->bytes_subida || (clases + i)->bytes_bajada) {
             fprintf(file,
+                    "%c\n"
                     "  {\n"
                     "    \"id\": %d,\n"
                     "    \"nombre\": \"%s\",\n"
                     "    \"descripcion\": \"%s\",\n"
                     "    \"subida\": %d,\n"
                     "    \"bajada\": %d\n"
-                    "  }%c\n",
+                    "  }",
+                    cantidad_procesada != 0 ? ',' : ' ',
                     (clases + i)->id,
                     (clases + i)->nombre,
                     (clases + i)->descripcion,
                     (clases + i)->bytes_subida,
-                    (clases + i)->bytes_bajada,
-                    i + 1 < cantidad ? ',' : ' ');
+                    (clases + i)->bytes_bajada);
+            cantidad_procesada++;
         }
     }
     /* fin array */
