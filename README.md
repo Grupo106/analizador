@@ -32,6 +32,23 @@ make
 sudo make install
 ```
 
+Uso
+-------------------------------------------------------
+```
+Uso: analizar [-h] | [-v] | [segundos] | [inicio fin]
+
+Este programa compara las clases de trafico intaladas con los paquetes capturados 
+en un intervalo de tiempo especifico. Si no se especifica ningun parametro, se 
+analizaran los paquetes recibidos desde los ultimos 60 segundos.
+
+Parametros:
+  -h, --help             Muestra esta ayuda.
+  -v, --version          Muestra numero de version.
+  segundos               Cantidad de segundos desde que se analizarán los paquetes
+  inicio fin             Intervalo de tiempo en los que se analizaran los paquetes en formato unixtime.
+(c) Netcop 2016 - Universidad Nacional de la Matanza
+```
+
 Ver logs
 -------------------------------------------------------
 Para ver logs generados por la aplicación se puede utilizar el journalctl
