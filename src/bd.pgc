@@ -102,15 +102,10 @@ int obtener_paquetes(struct s_analizador* analizador,
     EXEC SQL END DECLARE SECTION;
 
 
-    syslog(LOG_DEBUG,
-           "Se analizaran paquetes capturados desde %s",
-           ctime(&(analizador->tiempo_inicio)));
-    syslog(LOG_DEBUG,
-           "Se analizaran paquetes capturados hasta %s",
-           ctime(&(analizador->tiempo_fin)));
-
     is_iso8601 = strlen(analizador->inicio) &&
                  strlen(analizador->fin);
+
+
 
     /* preparo consultas */
     if (is_iso8601) {
@@ -119,12 +114,24 @@ int obtener_paquetes(struct s_analizador* analizador,
         EXEC SQL PREPARE stmt1 FROM :iso8601;
         EXEC SQL PREPARE count1 FROM :count8601;
         EXEC SQL EXECUTE count1 INTO :cantidad USING :inicio, :fin;
+        syslog(LOG_DEBUG,
+               "Se analizaran paquetes capturados desde %s",
+               analizador->inicio);
+        syslog(LOG_DEBUG,
+               "Se analizaran paquetes capturados hasta %s",
+               analizador->fin);
     } else {
         t_min = analizador->tiempo_inicio;
         t_max = analizador->tiempo_fin;
         EXEC SQL PREPARE stmt1 FROM :unixtime;
         EXEC SQL PREPARE count1 FROM :count;
         EXEC SQL EXECUTE count1 INTO :cantidad USING :t_min, :t_max;
+        syslog(LOG_DEBUG,
+               "Se analizaran paquetes capturados desde %s",
+               ctime(&(analizador->tiempo_inicio)));
+        syslog(LOG_DEBUG,
+               "Se analizaran paquetes capturados hasta %s",
+               ctime(&(analizador->tiempo_fin)));
     }
 
     /* obtengo la memoria necesaria para cargar todas las filas e inicializo la
